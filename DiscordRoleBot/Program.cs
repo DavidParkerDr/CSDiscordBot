@@ -11,7 +11,6 @@ namespace DiscordRoleBot
     {
         private static DiscordSocketClient _client = null;
         private static IConfiguration _config = null;
-        //Checking I can commit
 
         public static void Main(string[] args)
         {
