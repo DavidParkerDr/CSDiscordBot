@@ -43,17 +43,8 @@ namespace DiscordRoleBot
         /// </summary>
         /// <returns></returns>
         private Task ClientReady()
-        {            
-            var notifyId = (UInt64)(_config.GetValue(Type.GetType("System.UInt64"), "Notify"));
-            SocketUser notifyUser = _client.GetUser(notifyId);
-            if (notifyUser != null)
-            {
-                _ = notifyUser.GetOrCreateDMChannelAsync().ContinueWith(SendMessage, "I'm back baby!");
-            }
-            else
-            {
-                _ = Log(new LogMessage(LogSeverity.Error, "Bot", "notifyUser is null"));
-            }           
+        {
+            Notify("I'm back baby!");  
 
             return Task.CompletedTask;
         }
@@ -75,7 +66,7 @@ namespace DiscordRoleBot
             else
             {
                 _ = Log(new LogMessage(LogSeverity.Error, "Bot", "Tried to send message " + arg2.ToString() + " but it failed."));
-                var notifyId = (UInt64)(_config.GetValue(Type.GetType("System.UInt64"), "Notify"));
+                var notifyId = (ulong)(_config.GetValue(Type.GetType("System.UInt64"), "Notify"));
                 _client.GetUser(notifyId).GetOrCreateDMChannelAsync().ContinueWith(SendMessage, "Tried to send message " + arg2.ToString() + " but it failed.");
             }
         }
@@ -86,7 +77,7 @@ namespace DiscordRoleBot
             if (!task.IsCompletedSuccessfully)
             {                
                 _ = Log(new LogMessage(LogSeverity.Error, "Bot", "Tried to send message " + channel.Name + " but it failed."));
-                var notifyId = (UInt64)(_config.GetValue(Type.GetType("System.UInt64"), "Notify"));
+                var notifyId = (ulong)(_config.GetValue(Type.GetType("System.UInt64"), "Notify"));
                 _client.GetUser(notifyId).GetOrCreateDMChannelAsync().ContinueWith(SendMessage, "Tried to send message to " + channel.Name + " but it failed.");                
             }
             else
@@ -107,6 +98,41 @@ namespace DiscordRoleBot
             }
             Console.WriteLine(msg.ToString());
             return Task.CompletedTask;
+        }
+
+        private static void Notify(SocketUser user, string notification)
+        {
+            user.GetOrCreateDMChannelAsync().ContinueWith(SendMessage, notification);
+        }
+        private static void Notify(ulong userId, string notification)
+        {
+            SocketUser user = _client.GetUser(userId);
+            if (user != null)
+            {
+                Notify(user, notification);
+            }
+            else
+            {
+                _ = Log(new LogMessage(LogSeverity.Error, "Bot", "user with id: " + userId + " is not found"));
+            }
+        }
+        /// <summary>
+        /// Sends a given message to all the users specified in the appsettings.json file
+        /// NotifyList section
+        /// </summary>
+        /// <param name="notification">the string message to be sent to the notify users</param>
+        private static void Notify(string notification)
+        {
+            var arrayOfNotifyIds = _config.GetSection("NotifyList").Get<ulong[]>();
+            foreach(ulong notifyId in arrayOfNotifyIds)
+            {
+                Notify(notifyId, notification);
+            }            
+        }
+
+        public static void AddRoleToUser(SocketGuildUser user, SocketRole role)
+        {
+            user.AddRoleAsync(role);//.ContinueWith(AddRoleSuccess, s);
         }
     }
 }
