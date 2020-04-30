@@ -48,10 +48,8 @@ namespace DiscordRoleBot
         {
             Notify("I'm back baby!");
 
-            List<string> users = new List<string>();
-            users.Add("DavidParkerDr#6742");
-            users.Add("JDixonHull#1878");
-            _ = AddRoleToUsers(users, GetRole("testrole"));
+            string users = "DavidParkerDr#6742,JDixonHull#1878";
+            _ = AddRoleToUsers(GetSocketGuildUsers(users), GetRole("testrole"));
 
             return Task.CompletedTask;
         }
@@ -307,8 +305,12 @@ namespace DiscordRoleBot
             List<SocketGuildUser> users = GetSocketGuildUsers(usernamePlusDescriminators, GetGuild());
             _ = AddRoleToUsers(users, role);
         }
-        private static List<SocketGuildUser> GetSocketGuildUsers(List<string> usernamePlusDescriminators, SocketGuild guild)
+        private static List<SocketGuildUser> GetSocketGuildUsers(List<string> usernamePlusDescriminators, SocketGuild guild = null)
         {
+            if (guild == null)
+            {
+                guild = GetGuild();
+            }
             List<SocketGuildUser> users = new List<SocketGuildUser>();
             foreach (string usernamePlusDescriminator in usernamePlusDescriminators)
             {
@@ -319,6 +321,17 @@ namespace DiscordRoleBot
                 }
             }
             return users;
+        }
+        private static List<SocketGuildUser> GetSocketGuildUsers(string csvUsernamePlusDescriminators, SocketGuild guild = null)
+        {
+            if(guild == null)
+            {
+                guild = GetGuild();
+            }
+            string[] tokens = csvUsernamePlusDescriminators.Split(',');
+            List<string> usernamePlusDescriminators = tokens.ToList();
+            List<SocketGuildUser> socketGuildUsers = GetSocketGuildUsers(usernamePlusDescriminators, guild);
+            return socketGuildUsers;
         }
         /// <summary>
         /// retrieves a guild role from a guild and the roles id
