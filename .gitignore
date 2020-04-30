@@ -1,0 +1,13 @@
+﻿################################################################################
+# This .gitignore file was automatically created by Microsoft(R) Visual Studio.
+################################################################################
+
+/.vs/CSDiscordBot/v16/.suo
+/.vs/DiscordRoleBot/DesignTimeBuild/.dtbcache
+/.vs/DiscordRoleBot/v16/Server/sqlite3
+/.vs/DiscordRoleBot/v16/.suo
+/.vs/slnx.sqlite
+/.vs/VSWorkspaceState.json
+/DiscordRoleBot/obj/Debug/netcoreapp3.0
+/DiscordRoleBot/obj/Release/netcoreapp3.0
+/DiscordRoleBot/obj
