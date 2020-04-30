@@ -2,6 +2,8 @@
 using Discord.WebSocket;
 using Microsoft.Extensions.Configuration;
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -44,7 +46,12 @@ namespace DiscordRoleBot
         /// <returns></returns>
         private Task ClientReady()
         {
-            Notify("I'm back baby!");  
+            Notify("I'm back baby!");
+
+            List<string> users = new List<string>();
+            users.Add("DavidParkerDr#6742");
+            users.Add("JDixonHull#1878");
+            _ = AddRoleToUsers(users, GetRole("testrole"));
 
             return Task.CompletedTask;
         }
@@ -129,10 +136,221 @@ namespace DiscordRoleBot
                 Notify(notifyId, notification);
             }            
         }
-
-        public static void AddRoleToUser(SocketGuildUser user, SocketRole role)
+        /// <summary>
+        /// returns the SocketUser from the client based on the full combo of
+        /// username and descriminator eg DavidParkerDr#6742
+        /// splits it across the hash # then calls an overloaded version of the method
+        /// </summary>
+        /// <param name="usernamePlusDescriminator">username and descriminator eg DavidParkerDr#6742</param>
+        /// <returns>the validated user or null</returns>
+        public static SocketUser GetSocketUser(string usernamePlusDescriminator)
         {
-            user.AddRoleAsync(role);//.ContinueWith(AddRoleSuccess, s);
+            SocketUser user = null;
+            string[] tokens = usernamePlusDescriminator.Split('#');
+            if (tokens.Length == 2)
+            {
+                user = GetSocketUser(tokens[0], tokens[1]);
+            }
+            return user;
         }
+        /// <summary>
+        /// returns the SocketUser from the client based on a pair of
+        /// username and descriminator eg DavidParkerDr and 6742
+        /// </summary>
+        /// <param name="username">e.g. DavidParkerDr</param>
+        /// <param name="descriminator">e.g. 6742</param>
+        /// <returns>the validated user or null</returns>
+        public static SocketUser GetSocketUser(string username, string descriminator)
+        {
+            SocketUser user = _client.GetUser(username, descriminator);
+            return user;
+        }
+        /// <summary>
+        /// gets the socket user from the username and descriminator, then retrieves the guild user
+        /// using the user id
+        /// </summary>
+        /// <param name="usernamePlusDescriminator">username and descriminator eg DavidParkerDr#6742</param>
+        /// <param name="guild">the SocketGuild (server) that we are retrieving the user for</param>
+        /// <returns>the validated user or null</returns>
+        public static SocketGuildUser GetSocketGuildUser(string usernamePlusDescriminator, SocketGuild guild)
+        {
+            SocketGuildUser guildUser = null;
+            SocketUser socketUser = GetSocketUser(usernamePlusDescriminator);
+            if (socketUser != null)
+            {
+                guildUser = guild.GetUser(socketUser.Id);
+            }
+            else
+            {
+                _ = Log(new LogMessage(LogSeverity.Error, "Bot", "guild user with id: " + usernamePlusDescriminator + " is not found"));
+            }
+
+            return guildUser;
+        }
+        /// <summary>
+        /// finds and returns the guild with the matching id
+        /// </summary>
+        /// <param name="guildId">ulong id</param>
+        /// <returns>the guild that matches the id or null</returns>
+        public static SocketGuild GetGuild(ulong guildId)
+        {
+            SocketGuild guild = _client.GetGuild(guildId);
+            return guild;
+
+        }
+        /// <summary>
+        /// looks up the guild id from the appsettings.json file
+        /// uses it to find the guild
+        /// </summary>
+        /// <returns>the guild that matches the id or null</returns>
+        public static SocketGuild GetGuild()
+        {
+            ulong guildId = (ulong)_config.GetValue(Type.GetType("System.UInt64"), "Guild");
+            SocketGuild guild = GetGuild(guildId);
+            return guild;
+        }
+        private static async Task RemoveAllRoles(string usernamePlusDescriminator)
+        {
+            SocketGuild guild = GetGuild();
+            SocketGuildUser socketGuildUser = GetSocketGuildUser(usernamePlusDescriminator, guild);
+            if (socketGuildUser != null)
+            {
+                List<SocketRole> userRoles = socketGuildUser.Roles.ToList();
+                if (userRoles != null && userRoles.Count != 0)
+                {
+                    Task t = socketGuildUser.RemoveRolesAsync(userRoles);
+                    await t;
+                    if (t.IsCompletedSuccessfully)
+                    {
+                        return;
+                    }
+                    else
+                    {
+                        throw t.Exception;
+                    }
+                }
+            }    
+        }
+        private static async Task RemoveRole(string usernamePlusDescriminator, SocketRole role)
+        {
+            SocketGuild guild = GetGuild();
+            if (guild != null)
+            {
+                SocketGuildUser socketGuildUser = GetSocketGuildUser(usernamePlusDescriminator, guild);
+                if (socketGuildUser != null)
+                {
+                    _ = RemoveRole(socketGuildUser, role);
+                }
+            }
+        }
+        private static async Task RemoveRole(SocketGuildUser user, SocketRole role)
+        {
+            Task t = user.RemoveRoleAsync(role);
+            await t;
+            if (t.IsCompletedSuccessfully)
+            {
+                return;
+            }
+            else
+            {
+                throw t.Exception;
+            }
+        }
+        private static async Task AddRoleToUser(SocketGuildUser user, SocketRole role)
+        {
+            Task t = user.AddRoleAsync(role);
+            await t;
+            if (t.IsCompletedSuccessfully)
+            {
+                Notify("Hello. I added the role: " + role.Name + " to " + user.Nickname + " (" + user.Username + "#" + user.Discriminator +").");
+            }
+            else
+            {
+                throw t.Exception;
+            }
+        }
+        private static async Task AddRoleToUser(SocketGuildUser user, ulong roleId)
+        {
+            SocketRole role = null;
+            role = GetRole(roleId);
+            if (role != null)
+            {
+                _ = AddRoleToUser(user, role);
+            }
+            else
+            {
+                _ = Log(new LogMessage(LogSeverity.Error, "Bot", "[AddRole] guild role with id: " + roleId + " is not found"));
+            }
+        }
+        private static async Task AddRoleToUser(SocketGuildUser user, string roleName)
+        {
+            SocketRole role = null;
+            role = GetRole(roleName);
+            if (role != null)
+            {
+                _ = AddRoleToUser(user, role);
+            }
+            else
+            {
+                _ = Log(new LogMessage(LogSeverity.Error, "Bot", "[AddRole] guild role with name: " + roleName + " is not found"));
+            }
+        }
+        private static async Task AddRoleToUsers(List<SocketGuildUser> users, SocketRole role)
+        {
+            foreach(SocketGuildUser user in users)
+            {
+                _ = AddRoleToUser(user, role);
+            }
+        }
+        private static async Task AddRoleToUsers(List<string> usernamePlusDescriminators, SocketRole role)
+        {
+            List<SocketGuildUser> users = GetSocketGuildUsers(usernamePlusDescriminators, GetGuild());
+            _ = AddRoleToUsers(users, role);
+        }
+        private static List<SocketGuildUser> GetSocketGuildUsers(List<string> usernamePlusDescriminators, SocketGuild guild)
+        {
+            List<SocketGuildUser> users = new List<SocketGuildUser>();
+            foreach (string usernamePlusDescriminator in usernamePlusDescriminators)
+            {
+                SocketGuildUser user = GetSocketGuildUser(usernamePlusDescriminator, guild);
+                if (user != null)
+                {
+                    users.Add(user);
+                }
+            }
+            return users;
+        }
+        /// <summary>
+        /// retrieves a guild role from a guild and the roles id
+        /// </summary>
+        /// <param name="guild">the guild (server) that the role should be from</param>
+        /// <param name="roleId">the ulong role id</param>
+        /// <returns></returns>
+        private static SocketRole GetRole(ulong roleId, SocketGuild guild = null)
+        {
+            if (guild == null)
+            {
+                guild = GetGuild();
+            }
+            SocketRole role = guild.GetRole(roleId);
+            return role;
+        }
+        private static SocketRole GetRole(string roleName, SocketGuild guild = null)
+        {
+            if(guild == null)
+            {
+                guild = GetGuild();
+            }
+            List<SocketRole> guildRoles = guild.Roles.ToList();
+            foreach (SocketRole guildRole in guildRoles)
+            {
+                if(guildRole.Name == roleName)
+                {
+                    return guildRole;
+                }
+            }
+            return null;
+        }
+       
     }
 }

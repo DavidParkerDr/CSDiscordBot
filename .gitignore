@@ -11,3 +11,6 @@
 /DiscordRoleBot/obj/Debug/netcoreapp3.0
 /DiscordRoleBot/obj/Release/netcoreapp3.0
 /DiscordRoleBot/obj
+bin
+obj
+appsettings.json
