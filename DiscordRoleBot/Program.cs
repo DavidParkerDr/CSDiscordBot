@@ -4,7 +4,6 @@ using Microsoft.Extensions.Configuration;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -13,7 +12,8 @@ namespace DiscordRoleBot
     class Program
     {
         private static DiscordSocketClient _client = null;
-        public static IConfiguration _config = null;
+        private static IConfiguration _config = null;
+        private static Dictionary<Guid, (int Retries, object Content)> _messages = new Dictionary<Guid, (int, object)>();
 
         public static void Main(string[] args)
         {
@@ -52,7 +52,6 @@ namespace DiscordRoleBot
             string users = "DavidParkerDr#6742,JDixonHull#1878";
             _ = AddRoleToUsers(GetSocketGuildUsers(users), GetRole("testrole"));
 
-            GetCanvasUserAndNotify(201503639);
             return Task.CompletedTask;
         }
         /// <summary>
@@ -66,30 +65,64 @@ namespace DiscordRoleBot
 
         public static void SendMessage(Task<IDMChannel> task, object arg2)
         {
-            if (task.Status == TaskStatus.RanToCompletion)
+            _messages.TryGetValue((Guid)arg2, out var m);
+            var message = ((SocketUser User, string Notification))m.Content;
+
+            if (task.Status == TaskStatus.RanToCompletion && task.Result is IDMChannel)
             {
-                task.Result.SendMessageAsync(arg2.ToString()).ContinueWith(SentMessage, task.Result);
+                m.Retries = 0;
+                m.Content = (task.Result, message.Notification);
+                task.Result.SendMessageAsync(message.Notification.ToString()).ContinueWith(SentMessage, arg2);
             }
             else
             {
-                _ = Log(new LogMessage(LogSeverity.Error, "Bot", "Tried to send message " + arg2.ToString() + " but it failed."));
-                var notifyId = (ulong)(_config.GetValue(Type.GetType("System.UInt64"), "Notify"));
-                _client.GetUser(notifyId).GetOrCreateDMChannelAsync().ContinueWith(SendMessage, "Tried to send message " + arg2.ToString() + " but it failed.");
+                string errorMessage = "Tried to send message " + message.Notification.ToString() + " to " + message.User.Username + " but it failed when trying to get a DM channel.";
+                _ = Log(new LogMessage(LogSeverity.Error, "Bot", errorMessage + " Retrying..."));
+                m.Retries++;
+                if (m.Retries <= 2)
+                {
+                    message.User.GetOrCreateDMChannelAsync().ContinueWith(SendMessage, arg2);
+                }
+                else
+                {
+                    if (!_config.GetSection("NotifyList").Get<ulong[]>().Contains(message.User.Id))
+                    {
+                        Notify(errorMessage);
+                        _ = Log(new LogMessage(LogSeverity.Error, "Bot", errorMessage));
+                    }
+                    _messages.Remove((Guid)arg2);
+                }
             }
         }
 
         private static void SentMessage(Task<IUserMessage> task, object arg2)
         {
-            IDMChannel channel = arg2 as IDMChannel;
-            if (!task.IsCompletedSuccessfully)
-            {                
-                _ = Log(new LogMessage(LogSeverity.Error, "Bot", "Tried to send message " + channel.Name + " but it failed."));
-                var notifyId = (ulong)(_config.GetValue(Type.GetType("System.UInt64"), "Notify"));
-                _client.GetUser(notifyId).GetOrCreateDMChannelAsync().ContinueWith(SendMessage, "Tried to send message to " + channel.Name + " but it failed.");                
+            _messages.TryGetValue((Guid)arg2, out var m);
+            var message = ((IDMChannel Channel, string Notification))m.Content;
+
+            if (task.Status == TaskStatus.RanToCompletion)
+            {
+                _messages.Remove((Guid)arg2);
+                _ = Log(new LogMessage(LogSeverity.Info, "Bot", "Sent message " + task.Result.Content + " to " + message.Channel.Name + "."));
             }
             else
             {
-                _ = Log(new LogMessage(LogSeverity.Info, "Bot", "Sent message " + task.Result.Content + " to " + channel.Name + ".")); 
+                string errorMessage = "Tried to send message " + message.Notification + " to " + message.Channel.Name + " but it failed.";
+                _ = Log(new LogMessage(LogSeverity.Error, "Bot", errorMessage + " Retrying..."));
+                m.Retries++;
+                if (m.Retries <= 2)
+                {
+                    message.Channel.SendMessageAsync(message.Notification.ToString()).ContinueWith(SentMessage, arg2);
+                }
+                else
+                {
+                    if (!_config.GetSection("NotifyList").Get<ulong[]>().Contains(message.Channel.Recipient.Id))
+                    {
+                        Notify(errorMessage);
+                        _ = Log(new LogMessage(LogSeverity.Error, "Bot", errorMessage));
+                    }
+                    _messages.Remove((Guid)arg2);
+                }
             }
         }      
 
@@ -109,7 +142,9 @@ namespace DiscordRoleBot
 
         private static void Notify(SocketUser user, string notification)
         {
-            user.GetOrCreateDMChannelAsync().ContinueWith(SendMessage, notification);
+            Guid notificationId = Guid.NewGuid();
+            _messages.Add(notificationId, (0, (user, notification)));
+            user.GetOrCreateDMChannelAsync().ContinueWith(SendMessage, notificationId);
         }
         private static void Notify(ulong userId, string notification)
         {
@@ -366,17 +401,6 @@ namespace DiscordRoleBot
             }
             return null;
         }
-        private static async void GetCanvasUserAndNotify(int uni9DigitId)
-        {
-            StudentLookupResult studentLookupResult = await CanvasClient.Instance.GetCanvasUser(uni9DigitId);
-            if (studentLookupResult != null)
-            {
-                Notify("Is this the droid you are looking for? " + studentLookupResult.Name + " <" + studentLookupResult.Email + "> " + studentLookupResult.UniId + " - " + studentLookupResult.LoginId + ".");
-            }
-        }
-
-        
-        
-
+       
     }
 }
