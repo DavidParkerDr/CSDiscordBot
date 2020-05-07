@@ -4,6 +4,7 @@ using Microsoft.Extensions.Configuration;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -12,7 +13,7 @@ namespace DiscordRoleBot
     class Program
     {
         private static DiscordSocketClient _client = null;
-        private static IConfiguration _config = null;
+        public static IConfiguration _config = null;
 
         public static void Main(string[] args)
         {
@@ -51,6 +52,7 @@ namespace DiscordRoleBot
             string users = "DavidParkerDr#6742,JDixonHull#1878";
             _ = AddRoleToUsers(GetSocketGuildUsers(users), GetRole("testrole"));
 
+            GetCanvasUserAndNotify(201503639);
             return Task.CompletedTask;
         }
         /// <summary>
@@ -364,6 +366,17 @@ namespace DiscordRoleBot
             }
             return null;
         }
-       
+        private static async void GetCanvasUserAndNotify(int uni9DigitId)
+        {
+            StudentLookupResult studentLookupResult = await CanvasClient.Instance.GetCanvasUser(uni9DigitId);
+            if (studentLookupResult != null)
+            {
+                Notify("Is this the droid you are looking for? " + studentLookupResult.Name + " <" + studentLookupResult.Email + "> " + studentLookupResult.UniId + " - " + studentLookupResult.LoginId + ".");
+            }
+        }
+
+        
+        
+
     }
 }
