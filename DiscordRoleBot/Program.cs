@@ -4,6 +4,7 @@ using Microsoft.Extensions.Configuration;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -12,8 +13,10 @@ namespace DiscordRoleBot
     class Program
     {
         private static DiscordSocketClient _client = null;
-        private static IConfiguration _config = null;
+
+        public static IConfiguration _config = null;
         private static Dictionary<Guid, (int Retries, object Content)> _messages = new Dictionary<Guid, (int, object)>();
+
 
         public static void Main(string[] args)
         {
@@ -52,6 +55,7 @@ namespace DiscordRoleBot
             string users = "DavidParkerDr#6742,JDixonHull#1878";
             _ = AddRoleToUsers(GetSocketGuildUsers(users), GetRole("testrole"));
 
+            GetCanvasUserAndNotify(201503639);
             return Task.CompletedTask;
         }
         /// <summary>
@@ -98,25 +102,25 @@ namespace DiscordRoleBot
         private static void SentMessage(Task<IUserMessage> task, object arg2)
         {
             _messages.TryGetValue((Guid)arg2, out var m);
-            var message = ((IDMChannel Channel, string Notification))m.Content;
+            var message = ((SocketUser User, string Notification))m.Content;
 
             if (task.Status == TaskStatus.RanToCompletion)
             {
                 _messages.Remove((Guid)arg2);
-                _ = Log(new LogMessage(LogSeverity.Info, "Bot", "Sent message " + task.Result.Content + " to " + message.Channel.Name + "."));
+                _ = Log(new LogMessage(LogSeverity.Info, "Bot", "Sent message " + task.Result.Content + " to " + message.User.Username + "#" + message.User.Discriminator + "."));
             }
             else
             {
-                string errorMessage = "Tried to send message " + message.Notification + " to " + message.Channel.Name + " but it failed.";
+                string errorMessage = "Tried to send message " + message.Notification + " to " + message.User.Username + "#" + message.User.Discriminator + " but it failed.";
                 _ = Log(new LogMessage(LogSeverity.Error, "Bot", errorMessage + " Retrying..."));
                 m.Retries++;
                 if (m.Retries <= 2)
                 {
-                    message.Channel.SendMessageAsync(message.Notification.ToString()).ContinueWith(SentMessage, arg2);
+                    message.User.SendMessageAsync(message.Notification.ToString()).ContinueWith(SentMessage, arg2);
                 }
                 else
                 {
-                    if (!_config.GetSection("NotifyList").Get<ulong[]>().Contains(message.Channel.Recipient.Id))
+                    if (!_config.GetSection("NotifyList").Get<ulong[]>().Contains(message.User.Id))
                     {
                         Notify(errorMessage);
                         _ = Log(new LogMessage(LogSeverity.Error, "Bot", errorMessage));
@@ -401,6 +405,22 @@ namespace DiscordRoleBot
             }
             return null;
         }
-       
+        private static async void GetCanvasUserAndNotify(int uni9DigitId)
+        {
+           // StudentLookupResult testLookupResult = await CanvasClient.Instance.GetCanvasUserFrom6DigitId("350809");
+            StudentLookupResult studentLookupResult = await CanvasClient.Instance.GetCanvasUserFrom9DigitId(uni9DigitId);
+            if (studentLookupResult != null)
+            {
+                Notify("Is this the droid you are looking for? " + studentLookupResult.Name + " <" + studentLookupResult.Email + "> " + studentLookupResult.UniId + " - " + studentLookupResult.LoginId + ".");
+            }
+            else
+            {
+                Notify("The user with id " + studentLookupResult.UniId + " couldn't be found on Canvas. They may no longer be a student. Try looking them up in SITS");
+            }
+        }
+
+        
+        
+
     }
 }
