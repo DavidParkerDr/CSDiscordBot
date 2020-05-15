@@ -50,12 +50,15 @@ namespace DiscordRoleBot
         /// <returns></returns>
         private Task ClientReady()
         {
-            Notify("I'm back baby!");
+            //Notify("I'm back baby!");
 
             string users = "DavidParkerDr#6742,JDixonHull#1878";
-            _ = AddRoleToUsers(GetSocketGuildUsers(users), GetRole("testrole"));
+            //_ = AddRoleToUsers(GetSocketGuildUsers(users), GetRole("testrole"));
 
-            GetCanvasUserAndNotify(201503639);
+           // GetCanvasUserAndNotify(201503639);
+            //CanvasClient.Instance.GetCompleteCanvasUserList();
+            //CanvasClient.Instance.GetCompleteCanvasUserList();
+            
             return Task.CompletedTask;
         }
         /// <summary>
@@ -64,9 +67,17 @@ namespace DiscordRoleBot
         /// <returns></returns>
         private async Task<Task> ClientConnected()
         {
+            DiscordRoleBot.Services.Initialize i = new DiscordRoleBot.Services.Initialize(null, _client);
+            DiscordRoleBot.Services.CommandHandler commandHandler = new DiscordRoleBot.Services.CommandHandler(_client, i.BuildServiceProvider());
+            await commandHandler.InstallCommandsAsync();
             return Task.CompletedTask;
         }
-
+        public static Guid AddMessageToQueue(SocketUser user, string message)
+        {
+            Guid notificationId = Guid.NewGuid();
+            _messages.Add(notificationId, (0, (user, message)));
+            return notificationId;
+        }
         public static void SendMessage(Task<IDMChannel> task, object arg2)
         {
             _messages.TryGetValue((Guid)arg2, out var m);
@@ -130,7 +141,7 @@ namespace DiscordRoleBot
             }
         }      
 
-        private static Task Log(LogMessage msg)
+        public static Task Log(LogMessage msg)
         {
             if(msg.Severity == LogSeverity.Error)
             {
@@ -146,8 +157,7 @@ namespace DiscordRoleBot
 
         private static void Notify(SocketUser user, string notification)
         {
-            Guid notificationId = Guid.NewGuid();
-            _messages.Add(notificationId, (0, (user, notification)));
+            Guid notificationId = AddMessageToQueue(user, notification);
             user.GetOrCreateDMChannelAsync().ContinueWith(SendMessage, notificationId);
         }
         private static void Notify(ulong userId, string notification)
@@ -211,8 +221,12 @@ namespace DiscordRoleBot
         /// <param name="usernamePlusDescriminator">username and descriminator eg DavidParkerDr#6742</param>
         /// <param name="guild">the SocketGuild (server) that we are retrieving the user for</param>
         /// <returns>the validated user or null</returns>
-        public static SocketGuildUser GetSocketGuildUser(string usernamePlusDescriminator, SocketGuild guild)
+        public static SocketGuildUser GetSocketGuildUser(string usernamePlusDescriminator, SocketGuild guild = null)
         {
+            if (guild == null)
+            {
+                guild = GetGuild();
+            }
             SocketGuildUser guildUser = null;
             SocketUser socketUser = GetSocketUser(usernamePlusDescriminator);
             if (socketUser != null)
@@ -295,7 +309,7 @@ namespace DiscordRoleBot
                 throw t.Exception;
             }
         }
-        private static async Task AddRoleToUser(SocketGuildUser user, SocketRole role)
+        public static async Task AddRoleToUser(SocketGuildUser user, SocketRole role)
         {
             Task t = user.AddRoleAsync(role);
             await t;
@@ -380,7 +394,7 @@ namespace DiscordRoleBot
         /// <param name="guild">the guild (server) that the role should be from</param>
         /// <param name="roleId">the ulong role id</param>
         /// <returns></returns>
-        private static SocketRole GetRole(ulong roleId, SocketGuild guild = null)
+        public static SocketRole GetRole(ulong roleId, SocketGuild guild = null)
         {
             if (guild == null)
             {
@@ -389,7 +403,7 @@ namespace DiscordRoleBot
             SocketRole role = guild.GetRole(roleId);
             return role;
         }
-        private static SocketRole GetRole(string roleName, SocketGuild guild = null)
+        public static SocketRole GetRole(string roleName, SocketGuild guild = null)
         {
             if(guild == null)
             {
@@ -407,8 +421,8 @@ namespace DiscordRoleBot
         }
         private static async void GetCanvasUserAndNotify(int uni9DigitId)
         {
-           // StudentLookupResult testLookupResult = await CanvasClient.Instance.GetCanvasUserFrom6DigitId("350809");
-            StudentLookupResult studentLookupResult = await CanvasClient.Instance.GetCanvasUserFrom9DigitId(uni9DigitId);
+            StudentLookupResult studentLookupResult = CanvasClient.Instance.GetCanvasUserFrom6DigitId("350809").Result;
+            //StudentLookupResult studentLookupResult = await CanvasClient.Instance.GetCanvasUserFrom9DigitId(uni9DigitId);
             if (studentLookupResult != null)
             {
                 Notify("Is this the droid you are looking for? " + studentLookupResult.Name + " <" + studentLookupResult.Email + "> " + studentLookupResult.UniId + " - " + studentLookupResult.LoginId + ".");
