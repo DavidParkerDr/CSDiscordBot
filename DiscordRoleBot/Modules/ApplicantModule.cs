@@ -33,8 +33,8 @@ namespace DiscordRoleBot.Modules
                 {
                     // 9 characters, could be id
                     int applicantReferenceId;
-                    bool success = int.TryParse(applicantReferenceIdString, out applicantReferenceId);
-                    if (!success)
+                    bool isNumber = int.TryParse(applicantReferenceIdString, out applicantReferenceId);
+                    if (!isNumber)
                     {
                         // may have been 9 digits but was not an integer
                         reply = "The applicant id that you provided: " + applicantReferenceIdString + " is not a 9 digit number. The correct way to use this command is: !applicant 123456789 (where 123456789 should be replaced with your own applicant id)";
@@ -44,12 +44,27 @@ namespace DiscordRoleBot.Modules
                         // it was 9 digits and successfully parsed as an int
                         // now we can check the db for the applicant id to
                         // verify
-                        bool isApplicant = true; // check DB
+                        Applicant applicant = null;
+                        bool isApplicant = ApplicantsFile.Instance.TryGetApplicant(applicantReferenceId, out applicant); // check DB
                         if (isApplicant)
                         {
-                            // assignRole of applicant as they have supplied a valid id
-                            _ = Program.AddRoleToUser(user, Program.GetRole("applicant"));
-                            reply = "Thanks. Welcome to the Computer Science and Technology Discord Server. As an applicant you now have access to the Applicant Zone; check out the channels in there and feel free to talk amongst yourselves or ask us any questions that you like.";
+                            bool snowflakeAdded = applicant.AddDiscordSnowflake(user.Id);
+                            if (snowflakeAdded)
+                            {
+                                // assignRole of applicant as they have supplied a valid id
+                                _ = Program.AddRoleToUser(user, Program.GetRole("applicant"));
+                                reply = "Thanks. Welcome to the Computer Science and Technology Discord Server. As an applicant you now have access to the Applicant Zone; check out the channels in there and feel free to talk amongst yourselves or ask us any questions that you like.";
+                                //save updated list
+                                ApplicantsFile.Instance.Save();
+                            }
+                            else
+                            {
+                                reply = "The applicant id that you provided: " + applicantReferenceIdString + " did not work. Please check that you have supplied the right id. If you are sure, then please get in touch as something has gone wrong.)";
+                            }
+                        }
+                        else
+                        {
+                            reply = "The applicant id that you provided: " + applicantReferenceIdString + " did not work. Please check that you have supplied the right id. If you are sure, then please get in touch as something has gone wrong.)";
                         }
                     }
                 }
