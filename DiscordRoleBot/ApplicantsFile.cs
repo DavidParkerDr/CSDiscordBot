@@ -66,7 +66,7 @@ namespace DiscordRoleBot
             }
             catch (Exception e)
             {
-                Program.Log(new LogMessage(LogSeverity.Warning, "Bot", "Could not load Applicants File with name: " + fileName));
+                Program.Log(new LogMessage(LogSeverity.Warning, "Bot", "Could not load Applicants File with name: " + fileName + "because of: " + e.Message));
             }
 
         }
