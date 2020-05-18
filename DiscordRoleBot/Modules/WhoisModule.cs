@@ -60,7 +60,7 @@ namespace DiscordRoleBot.Modules
                                         // this discord user matches one of the applicants
                                         reply = "That user (" + lookupString + ") is an student. Their student id is: " + student.StudentId + ".";
                                         StudentLookupResult studentLookupResult = await CanvasClient.Instance.GetCanvasUserFrom9DigitId(student.StudentId);
-                                        if(studentLookupResult != null)
+                                        if (studentLookupResult != null)
                                         {
                                             if (student.StudentId != studentLookupResult.UniId)
                                             {
@@ -77,6 +77,11 @@ namespace DiscordRoleBot.Modules
                                             // student not found on Canvas
                                             reply += "But they were not found on Canvas for some reason.";
                                         }
+                                    }
+                                    else
+                                    {
+                                        // not found in our StudentsFile lookup either
+                                        reply = "That user (" + lookupString + ") was not found in our records. Please check that you have typed it correctly. They may not have validated their Discord username.";
                                     }
                                 }
                             }
