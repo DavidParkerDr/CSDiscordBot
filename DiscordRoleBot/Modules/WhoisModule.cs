@@ -122,15 +122,13 @@ namespace DiscordRoleBot.Modules
                                     {
                                         // this discord user matches one of the applicants
                                         reply = "That user (" + lookupString + ") is a student.";
-                                        if (applicant.DiscordConnected)
+                                        SocketGuildUser discordUser = Program.GetSocketGuildUser(student.DiscordSnowflake);
+                                        if (discordUser != null)
                                         {
-                                            SocketGuildUser discordUser = Program.GetSocketGuildUser(applicant.DiscordSnowflake);
-                                            if (discordUser != null)
-                                            {
-                                                string usernamePlusDiscriminator = discordUser.Username + "#" + discordUser.Discriminator;
-                                                reply += " Their current Discord handle on this server is: " + usernamePlusDiscriminator + ".";
-                                            }
+                                            string usernamePlusDiscriminator = discordUser.Username + "#" + discordUser.Discriminator;
+                                            reply += " Their current Discord handle on this server is: " + usernamePlusDiscriminator + ".";
                                         }
+                                        
                                     }
                                     else
                                     {

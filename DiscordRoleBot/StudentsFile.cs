@@ -1,5 +1,6 @@
 ﻿using Castle.Core.Internal;
 using Discord;
+using Discord.WebSocket;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -85,6 +86,58 @@ namespace DiscordRoleBot
                 Student student = new Student(studentId, discordSnowflake);
                 students.Add(student.StudentId, student);
                 studentsDiscordLookup.Add(student.DiscordSnowflake, student);
+                line = streamReader.ReadLine();
+            }
+            //Continue to read until you reach end of file
+            while (line != null);
+
+
+        }
+        public void LoadOldDiscordList(string fileName)
+        {
+
+            try
+            {
+                //Pass the file path and file name to the StreamReader constructor
+                StreamReader streamReader = new StreamReader(fileName);
+                LoadOldDiscordList(streamReader);
+                //close the file
+                streamReader.Close();
+            }
+            catch (FileNotFoundException e)
+            {
+                Program.Log(new LogMessage(LogSeverity.Warning, "Bot", "Could not find Students File with name: " + fileName));
+            }
+            catch (Exception e)
+            {
+                Program.Log(new LogMessage(LogSeverity.Warning, "Bot", "Could not load Students File with name: " + fileName + "because of: " + e.Message));
+            }
+
+        }
+        private void LoadOldDiscordList(StreamReader streamReader)
+        {
+            //Read the first line of text
+            String line = streamReader.ReadLine();
+            do
+            {
+                string[] tokens = line.Split(',');
+                string discordUsernamePlusDiscriminatorString = tokens[1].Trim();
+                string studentIdString = tokens[0].Trim();
+                int studentId = int.Parse(studentIdString);
+                SocketGuildUser discordUser = Program.GetSocketGuildUser(discordUsernamePlusDiscriminatorString);
+                if(discordUser != null)
+                {
+                    ulong discordSnowflake = discordUser.Id;
+                    Student student = new Student(studentId, discordSnowflake);
+                    students.Add(student.StudentId, student);
+                    studentsDiscordLookup.Add(student.DiscordSnowflake, student);
+                }
+                else
+                {
+                    // that username and discriminator combo may have changed since the original list was made.
+                    Console.WriteLine(line + ", is no longer a valid record.");
+                }
+                
                 line = streamReader.ReadLine();
             }
             //Continue to read until you reach end of file

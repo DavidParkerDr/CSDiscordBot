@@ -55,10 +55,12 @@ namespace DiscordRoleBot
             string users = "DavidParkerDr#6742,JDixonHull#1878";
             //_ = AddRoleToUsers(GetSocketGuildUsers(users), GetRole("testrole"));
 
-           // GetCanvasUserAndNotify(201503639);
+            // GetCanvasUserAndNotify(201503639);
             //CanvasClient.Instance.GetCompleteCanvasUserList();
             //CanvasClient.Instance.GetCompleteCanvasUserList();
-            
+            // StudentsFile.Instance.LoadOldDiscordList("oldDiscordList.csv");
+            // StudentsFile.Instance.Save();
+           // ValidateAllStudentUsers();
             return Task.CompletedTask;
         }
         /// <summary>
@@ -447,6 +449,35 @@ namespace DiscordRoleBot
             else
             {
                 Notify("The user with id " + studentLookupResult.UniId + " couldn't be found on Canvas. They may no longer be a student. Try looking them up in SITS");
+            }
+        }
+
+        private static async void ValidateAllStudentUsers()
+        {
+            SocketGuild guild = GetGuild();
+            IReadOnlyCollection<SocketGuildUser> users = guild.Users;
+            foreach(SocketGuildUser user in users)
+            {
+                SocketRole studentRole = GetRole("student");
+                if(user.Roles.Contains(studentRole))
+                {
+                    // is a student
+                    // check against student list
+                    Student student = null;
+                    if(!StudentsFile.Instance.TryGetDiscordStudent(user.Id, out student))
+                    {
+                        // discord user is not in student list
+                        Console.WriteLine(user.Username + "#" + user.Discriminator);
+                    }
+                    else
+                    {
+                        StudentLookupResult canvasResult = await CanvasClient.Instance.GetCanvasUserFrom9DigitId(student.StudentId);
+                        Console.Write(user.Username + "#" + user.Discriminator);
+                        Console.Write(", " +user.Id);
+                        Console.Write(", " + canvasResult.Name);
+                        Console.WriteLine(", " + canvasResult.UniId);
+                    }
+                }
             }
         }
 
