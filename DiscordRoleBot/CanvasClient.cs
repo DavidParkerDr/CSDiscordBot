@@ -38,13 +38,15 @@ namespace DiscordRoleBot
         {
             int tryCount = 0;
             var canvasUser = Program._config.GetValue(Type.GetType("System.String"), "CanvasUser").ToString();
-            string path = "https://canvas.hull.ac.uk/api/v1/courses/17835/users/" + "?as_user_id=sis_user_id:" + canvasUser + " & search_term=" + uni9DigitId.ToString();
+            //string path = "https://canvas.hull.ac.uk/api/v1/courses/17835/users/" + uni9DigitId.ToString() + "/?as_user_id=sis_user_id:" + canvasUser;
+            string path = "https://canvas.hull.ac.uk/api/v1/courses/17835/users/sis_user_id:" + uni9DigitId.ToString() + "/?as_user_id=sis_user_id:" + canvasUser;
             while (tryCount < 3)
             {
                 (string response, string nextPagePath) = await GetStringAsync(path);
                 try
                 {
-                    StudentLookupResult studentLookupResult = new StudentLookupResult(response);
+                    JObject responseObject = JObject.Parse(response);
+                    StudentLookupResult studentLookupResult = new StudentLookupResult(responseObject);
                     return studentLookupResult;
                 }
                 catch

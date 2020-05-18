@@ -241,6 +241,23 @@ namespace DiscordRoleBot
             return guildUser;
         }
         /// <summary>
+        /// gets the socket user from the username and descriminator, then retrieves the guild user
+        /// using the user id
+        /// </summary>
+        /// <param name="discordSnowflake">discord snowflake user id</param>
+        /// <param name="guild">the SocketGuild (server) that we are retrieving the user for</param>
+        /// <returns>the validated user or null</returns>
+        public static SocketGuildUser GetSocketGuildUser(ulong discordSnowflake, SocketGuild guild = null)
+        {
+            if (guild == null)
+            {
+                guild = GetGuild();
+            }
+            SocketGuildUser guildUser = guild.GetUser(discordSnowflake);            
+
+            return guildUser;
+        }
+        /// <summary>
         /// finds and returns the guild with the matching id
         /// </summary>
         /// <param name="guildId">ulong id</param>
@@ -421,8 +438,8 @@ namespace DiscordRoleBot
         }
         private static async void GetCanvasUserAndNotify(int uni9DigitId)
         {
-            StudentLookupResult studentLookupResult = CanvasClient.Instance.GetCanvasUserFrom6DigitId("350809").Result;
-            //StudentLookupResult studentLookupResult = await CanvasClient.Instance.GetCanvasUserFrom9DigitId(uni9DigitId);
+            //StudentLookupResult studentLookupResult = CanvasClient.Instance.GetCanvasUserFrom6DigitId("350809").Result;
+            StudentLookupResult studentLookupResult = await CanvasClient.Instance.GetCanvasUserFrom9DigitId(uni9DigitId);
             if (studentLookupResult != null)
             {
                 Notify("Is this the droid you are looking for? " + studentLookupResult.Name + " <" + studentLookupResult.Email + "> " + studentLookupResult.UniId + " - " + studentLookupResult.LoginId + ".");

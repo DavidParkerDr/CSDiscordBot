@@ -33,7 +33,14 @@ namespace DiscordRoleBot
             {
                 UniId = int.Parse(jObject["sis_user_id"].ToString());
                 LoginId = jObject["login_id"].ToString();
-                Email = jObject["email"].ToString();
+                if (jObject.ContainsKey("email"))
+                {
+                    Email = jObject["email"].ToString();
+                }
+                else
+                {
+                    Email = "not provided";
+                }
                 Name = jObject["name"].ToString();
             }
             catch

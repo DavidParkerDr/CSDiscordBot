@@ -10,6 +10,7 @@ namespace DiscordRoleBot
     public class ApplicantsFile
     {
         private Dictionary<int, Applicant> applicants;
+        private Dictionary<ulong, Applicant> applicantsDiscordLookup;
         private static ApplicantsFile instance;
 
         public static ApplicantsFile Instance
@@ -29,10 +30,23 @@ namespace DiscordRoleBot
             bool success = applicants.TryGetValue(applicantId, out applicant);
             return success;
         }
+        public bool TryGetDiscordApplicant(ulong applicantDiscordSnowflake, out Applicant applicant)
+        {
+            bool success = applicantsDiscordLookup.TryGetValue(applicantDiscordSnowflake, out applicant);
+            return success;
+        }
+
+        public void UpdateDiscordLookup(Applicant applicant)
+        {
+            applicantsDiscordLookup.Add(applicant.DiscordSnowflake, applicant);
+            //save updated list
+            Save();
+        }
 
         public ApplicantsFile(string path = "applicants.txt")
         {
             applicants = new Dictionary<int, Applicant>();
+            applicantsDiscordLookup = new Dictionary<ulong, Applicant>();
             Load(path);
         }
         private void Load(string fileName)
@@ -78,6 +92,10 @@ namespace DiscordRoleBot
                 }
                 Applicant applicant = new Applicant(applicantId, discordSnowflake, discordConnected);
                 applicants.Add(applicant.ApplicantId, applicant);
+                if (applicant.DiscordConnected)
+                {
+                    applicantsDiscordLookup.Add(applicant.DiscordSnowflake, applicant);
+                }
                 line = streamReader.ReadLine();
             }
             //Continue to read until you reach end of file
