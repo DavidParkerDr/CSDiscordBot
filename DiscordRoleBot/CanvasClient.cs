@@ -7,6 +7,7 @@ using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace DiscordRoleBot
@@ -46,6 +47,10 @@ namespace DiscordRoleBot
                 try
                 {
                     JObject responseObject = JObject.Parse(response);
+                    if(responseObject.ContainsKey("errors"))
+                    {
+                        return null;
+                    }
                     StudentLookupResult studentLookupResult = new StudentLookupResult(responseObject);
                     return studentLookupResult;
                 }
@@ -172,6 +177,75 @@ namespace DiscordRoleBot
                 }
             }
             return nextPagePath;
+        }
+
+        async Task<string> PostStringAsync(string path, string jsonString)
+        {
+            string responsestring = "";
+            HttpContent content = new StringContent(jsonString, Encoding.UTF8, "application/json");
+            HttpRequestMessage request = new HttpRequestMessage { Method = HttpMethod.Post, RequestUri = new Uri(path), Content = content };
+            HttpResponseMessage response = await client.SendAsync(request);
+            responsestring = await response.Content.ReadAsStringAsync();
+            return responsestring;
+        }
+        public void Go()
+        {
+            GetQuizResponses().Wait();
+        }
+
+        public async Task GetQuizResponses()
+        {
+            var canvasUser = Program._config.GetValue(Type.GetType("System.String"), "CanvasUser").ToString();
+            while (true)
+            {
+                try
+                {
+                    //First create a new report
+                    string path = @"https://canvas.hull.ac.uk/api/v1/courses/17835/quizzes/20659/reports?as_user_id=sis_user_id:" + canvasUser;
+                    string response = await PostStringAsync(path, @"{""quiz_report"":{""report_type"": ""student_analysis"",""includes_all_versions"": true}}");
+                    var obj = JObject.Parse(response);
+                    bool complete = false;
+                    string nextPagePath = null;
+                    path = (string)obj["progress_url"] + "?as_user_id=sis_user_id:" + canvasUser;
+                    while (!complete)
+                    {
+                        Thread.Sleep(5000);
+                        
+                        (response, nextPagePath) = await GetStringAsync(path);
+                        obj = JObject.Parse(response);
+                        if ((double)obj["completion"] == 100.0)
+                        {
+                            complete = true;
+                        }
+                    }
+                    path = "https://canvas.hull.ac.uk/api/v1/courses/17835/quizzes/20659/reports/" + (string)obj["context_id"] + "?as_user_id=sis_user_id:" + canvasUser;
+                    (response, nextPagePath) = await GetStringAsync(path);
+                    obj = JObject.Parse(response);
+                    path = (string)obj["file"]["url"] + "&as_user_id=sis_user_id:" + canvasUser;
+                    (response, nextPagePath) = await GetStringAsync(path);
+
+                    // in theory we should now have a complete response that we can inspect for new responses and update the student role
+                    // todo here
+                    Console.WriteLine("Got the quiz responses!");
+                    
+                }
+                catch (Exception e)
+                {
+                    Console.ForegroundColor = ConsoleColor.Red;
+                    Console.WriteLine("Failed to grab quiz results:");
+                    Console.WriteLine(e.Message);
+                    while (e.InnerException != null)
+                    {
+                        Console.WriteLine("Inner: " + e.InnerException.Message);
+                        e = e.InnerException;
+                    }
+                    Console.ForegroundColor = ConsoleColor.Gray;
+                }
+
+           
+
+                Thread.Sleep(new TimeSpan(0, 10, 0));
+            }
         }
     }
 }

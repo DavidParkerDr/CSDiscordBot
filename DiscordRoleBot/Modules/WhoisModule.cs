@@ -32,8 +32,8 @@ namespace DiscordRoleBot.Modules
                 {
                     if (parameters != null)
                     {
-                        string[] parametersTokens = parameters.Split(' ');
-                        string lookupString = parametersTokens[0];
+                        
+                        string lookupString = parameters.Trim();
 
                         if (lookupString.Contains('#'))
                         {
@@ -75,7 +75,7 @@ namespace DiscordRoleBot.Modules
                                         else
                                         {
                                             // student not found on Canvas
-                                            reply += "But they were not found on Canvas for some reason.";
+                                            reply += " But they were not found on Canvas for some reason.";
                                         }
                                     }
                                     else
@@ -120,7 +120,7 @@ namespace DiscordRoleBot.Modules
                                     Student student = null;
                                     if (StudentsFile.Instance.TryGetStudent(uniId, out student))
                                     {
-                                        // this discord user matches one of the applicants
+                                        // this discord user matches one of the students
                                         reply = "That user (" + lookupString + ") is a student.";
                                         SocketGuildUser discordUser = Program.GetSocketGuildUser(student.DiscordSnowflake);
                                         if (discordUser != null)

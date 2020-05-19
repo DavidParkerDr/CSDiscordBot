@@ -22,8 +22,7 @@ namespace DiscordRoleBot.Modules
             {
                 if (parameters != null)
                 {
-                    string[] parametersTokens = parameters.Split(' ');
-                    string applicantReferenceIdString = parametersTokens[0];
+                    string applicantReferenceIdString = parameters.Trim();
 
 
                     if (applicantReferenceIdString.Length != 9)

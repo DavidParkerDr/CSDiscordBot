@@ -60,7 +60,10 @@ namespace DiscordRoleBot
             //CanvasClient.Instance.GetCompleteCanvasUserList();
             // StudentsFile.Instance.LoadOldDiscordList("oldDiscordList.csv");
             // StudentsFile.Instance.Save();
-           // ValidateAllStudentUsers();
+            // ValidateAllStudentUsers();
+            //FindAllNoRoleUsers();
+            Thread CanvasThread = new Thread(CanvasClient.Instance.Go);
+            //CanvasThread.Start();
             return Task.CompletedTask;
         }
         /// <summary>
@@ -481,8 +484,30 @@ namespace DiscordRoleBot
             }
         }
 
-        
-        
+        private static async void FindAllNoRoleUsers()
+        {
+            SocketGuild guild = GetGuild();
+            IReadOnlyCollection<SocketGuildUser> users = guild.Users;
+            foreach (SocketGuildUser user in users)
+            {
+                SocketRole studentRole = GetRole("student");
+                if (user.Roles.Contains(studentRole))
+                {
+                    continue;
+                }
+                SocketRole staffRole = GetRole("staff");
+                if (user.Roles.Contains(staffRole))
+                {
+                    continue;
+                }
+                Console.WriteLine(user.Username + "#" + user.Discriminator);
+                SocketRole unassignedRole = GetRole("unassigned");
+                _ = AddRoleToUser(user, unassignedRole);
+            }
+        }
+
+
+
 
     }
 }
