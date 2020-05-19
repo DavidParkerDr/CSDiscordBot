@@ -38,6 +38,7 @@ namespace DiscordRoleBot
             await _client.StartAsync();
 
             _client.Connected += ClientConnected;
+            _client.UserJoined += Client_UserJoined;
             _client.Ready += ClientReady;
 
             // Block this task until the program is closed.
@@ -67,6 +68,29 @@ namespace DiscordRoleBot
             //FindAllNoRoleUsers();
             Thread CanvasThread = new Thread(CanvasClient.Instance.Go);
            // CanvasThread.Start();
+            return Task.CompletedTask;
+        }
+
+        private static Task Client_UserJoined(SocketGuildUser arg)
+        {
+            Student student = null;
+            Applicant applicant = null;
+            if(StudentsFile.Instance.TryGetDiscordStudent(arg.Id, out student))
+            {
+                SocketRole studentRole = GetRole("student");
+                _ = AddRoleToUser(arg, studentRole);
+            }
+            else if(ApplicantsFile.Instance.TryGetDiscordApplicant(arg.Id, out applicant))
+            {
+                SocketRole applicantRole = GetRole("applicant");
+                _ = AddRoleToUser(arg, applicantRole);
+            }            
+            else
+            {
+                string message = @"Welcome to the Computer Science and Technology Discord. If you are one of our students, please ensure that you have submitted your Username and ID at https://canvas.hull.ac.uk/courses/17835/quizzes/20659 which will give you permissions to use the server. Please note that your username is case sensitive. The process may take up to 2 hours to complete. If you are not yet one of our students, but have applied, then if you reply to this message with the following command, then your user will be validated and you will gain access to the Applicant Zone on the server. The command is !applicant 123456789, where you replace that 9 digit number with the 9 digit application id that you were provided by the University. If you have any problems, please get in touch with John Dixon (JDixonHull#1878) or David Parker (DavidParkerDr#6742).";
+                Guid messageId = Program.AddMessageToQueue(arg, message);
+                _ = arg.GetOrCreateDMChannelAsync().ContinueWith(Program.SendMessage, messageId);
+            }
             return Task.CompletedTask;
         }
         /// <summary>
@@ -240,10 +264,6 @@ namespace DiscordRoleBot
             if (socketUser != null)
             {
                 guildUser = guild.GetUser(socketUser.Id);
-            }
-            else
-            {
-                _ = Log(new LogMessage(LogSeverity.Error, "Bot", "guild user with id: " + usernamePlusDescriminator + " is not found"));
             }
 
             return guildUser;
