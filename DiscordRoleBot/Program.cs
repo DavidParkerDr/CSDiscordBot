@@ -50,7 +50,10 @@ namespace DiscordRoleBot
         /// <returns></returns>
         private Task ClientReady()
         {
-            //Notify("I'm back baby!");
+            //for (int i = 0; i < 10; i++)
+            //{
+            //    Notify("I'm back baby! " + i);
+            //}
 
             string users = "DavidParkerDr#6742,JDixonHull#1878";
             //_ = AddRoleToUsers(GetSocketGuildUsers(users), GetRole("testrole"));
@@ -63,7 +66,7 @@ namespace DiscordRoleBot
             // ValidateAllStudentUsers();
             //FindAllNoRoleUsers();
             Thread CanvasThread = new Thread(CanvasClient.Instance.Go);
-            //CanvasThread.Start();
+           // CanvasThread.Start();
             return Task.CompletedTask;
         }
         /// <summary>

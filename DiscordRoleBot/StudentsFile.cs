@@ -1,15 +1,20 @@
 ﻿using Castle.Core.Internal;
+using CsvHelper;
 using Discord;
 using Discord.WebSocket;
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 using System.Text;
+using System.Threading;
 
 namespace DiscordRoleBot
 {
     public class StudentsFile
     {
+        internal static SemaphoreSlim mut = new SemaphoreSlim(1, 1);
+
         private Dictionary<int, Student> students;
         private Dictionary<ulong, Student> studentsDiscordLookup;
         private static StudentsFile instance;
@@ -165,6 +170,60 @@ namespace DiscordRoleBot
                 Student student = studentRecord.Value;
                 student.Save(streamWriter);
             }
+        }
+
+        public bool UnpackFromCanvas(string csv)
+        {
+            bool success = false;
+            using (TextReader reader = new StringReader(csv))
+            using (CsvReader csvReader = new CsvReader(reader, CultureInfo.InvariantCulture))
+            {
+                csvReader.Configuration.RegisterClassMap<CanvasQuizRecordMap>();
+                IEnumerable<CanvasQuizRecord> canvasQuizRecords;
+                try
+                {
+                    canvasQuizRecords = csvReader.GetRecords<CanvasQuizRecord>();
+                }
+                catch
+                {
+                    Console.ForegroundColor = ConsoleColor.Red;
+                    Console.WriteLine("Something went wrong with the CSV.");
+                    Console.ForegroundColor = ConsoleColor.Gray;
+                    return false;
+                }
+
+                if (canvasQuizRecords is IEnumerable<CanvasQuizRecord>)
+                {
+                    mut.Wait();
+                    foreach (CanvasQuizRecord canvasQuizRecord in canvasQuizRecords)
+                    {
+                        Student student = null;
+                        if(TryGetStudent(canvasQuizRecord.StudentId, out student))
+                        {
+                            //quiz record matches an existing student;
+                        }
+                        else
+                        {
+                            //this quiz entry is by a student that does not have a discord record
+                            SocketGuildUser discordUser = Program.GetSocketGuildUser(canvasQuizRecord.User);
+                            if(discordUser != null)
+                            {
+                                student = new Student(canvasQuizRecord.StudentId, discordUser.Id);
+                                AddStudent(student);
+                                SocketRole studentRole = Program.GetRole("student");
+                                _ = Program.AddRoleToUser(discordUser, studentRole);
+                                Program.Log(new LogMessage(LogSeverity.Info, "CanvasQuiz", "Added a new user with id: " + canvasQuizRecord.User + " (" + canvasQuizRecord.StudentId +")"));
+                            }
+                            else
+                            {
+                                // this quiz entry did not specify a valid user on the discord server.
+                            }
+                        }
+                    }
+                    mut.Release();
+                }
+            }
+            return success;
         }
     }
 }

@@ -227,7 +227,7 @@ namespace DiscordRoleBot
                     // in theory we should now have a complete response that we can inspect for new responses and update the student role
                     // todo here
                     Console.WriteLine("Got the quiz responses!");
-                    
+                    StudentsFile.Instance.UnpackFromCanvas(response);
                 }
                 catch (Exception e)
                 {
