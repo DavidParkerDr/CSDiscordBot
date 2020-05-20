@@ -33,8 +33,17 @@ namespace DiscordRoleBot
             using (StreamWriter streamWriter = new StreamWriter(filePath, true))
             {
                 string date = DateTime.Now.ToShortDateString() + " ";
+                streamWriter.Write(message.Severity.ToString() + " ");
                 streamWriter.Write(date);
                 streamWriter.WriteLine(message.ToString());
+                if (message.Severity == LogSeverity.Error)
+                {
+                    Console.ForegroundColor = ConsoleColor.Red;
+                }
+                else
+                {
+                    Console.ForegroundColor = ConsoleColor.Gray;
+                }
                 Console.Write(date);
                 Console.WriteLine(message.ToString());
                 streamWriter.Close();

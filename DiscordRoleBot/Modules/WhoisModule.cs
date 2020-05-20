@@ -67,7 +67,7 @@ namespace DiscordRoleBot.Modules
                                             else
                                             {
                                                 reply += "Their name is: " + studentLookupResult.Name + ". Their email is: " + studentLookupResult.Email + ". Their username is: " + studentLookupResult.LoginId + ".";
-                                                _ = FileLogger.Instance.Log(new LogMessage(LogSeverity.Info, "CanvasLookup", "[Whois]: " + requesterLookup + " asked who: " + lookupString + " is and was told: " + reply"));
+                                                _ = FileLogger.Instance.Log(new LogMessage(LogSeverity.Info, "CanvasLookup", "[Whois]: " + requesterLookup + " asked who: " + lookupString + " is and was told: " + reply));
                                             }
                                         }
                                         else

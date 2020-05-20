@@ -1,6 +1,7 @@
 ﻿using CsvHelper.Configuration;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Text;
 
 namespace DiscordRoleBot
@@ -16,7 +17,7 @@ namespace DiscordRoleBot
                 user = GenerateUser(value);
             }
         }
-        public string RecordTimeStampString { get; private set; }
+        public string RecordTimeStampString { get; set; }
 
         private string GenerateUser(string delimitedUser)
         {
@@ -35,7 +36,9 @@ namespace DiscordRoleBot
 
         public DateTime GenerateDateTime()
         {
-            return DateTime.Now;
+            string trimmedString = RecordTimeStampString.Replace("UTC", "").Trim();
+            DateTime timeStamp = DateTime.Parse(trimmedString);
+            return timeStamp;
         }
     }
 
