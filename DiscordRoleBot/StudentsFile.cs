@@ -69,11 +69,11 @@ namespace DiscordRoleBot
             }
             catch (FileNotFoundException e)
             {
-                Program.Log(new LogMessage(LogSeverity.Warning, "Bot", "Could not find Students File with name: " + fileName));
+                FileLogger.Instance.Log(new LogMessage(LogSeverity.Warning, "Bot", "Could not find Students File with name: " + fileName));
             }
             catch (Exception e)
             {
-                Program.Log(new LogMessage(LogSeverity.Warning, "Bot", "Could not load Students File with name: " + fileName + "because of: " + e.Message));
+                FileLogger.Instance.Log(new LogMessage(LogSeverity.Warning, "Bot", "Could not load Students File with name: " + fileName + "because of: " + e.Message));
             }
 
         }
@@ -111,11 +111,11 @@ namespace DiscordRoleBot
             }
             catch (FileNotFoundException e)
             {
-                Program.Log(new LogMessage(LogSeverity.Warning, "Bot", "Could not find Students File with name: " + fileName));
+                FileLogger.Instance.Log(new LogMessage(LogSeverity.Warning, "Bot", "Could not find Students File with name: " + fileName));
             }
             catch (Exception e)
             {
-                Program.Log(new LogMessage(LogSeverity.Warning, "Bot", "Could not load Students File with name: " + fileName + "because of: " + e.Message));
+                FileLogger.Instance.Log(new LogMessage(LogSeverity.Warning, "Bot", "Could not load Students File with name: " + fileName + "because of: " + e.Message));
             }
 
         }
@@ -194,6 +194,7 @@ namespace DiscordRoleBot
 
                 if (canvasQuizRecords is IEnumerable<CanvasQuizRecord>)
                 {
+                    string notification = "";
                     mut.Wait();
                     foreach (CanvasQuizRecord canvasQuizRecord in canvasQuizRecords)
                     {
@@ -212,7 +213,9 @@ namespace DiscordRoleBot
                                 AddStudent(student);
                                 SocketRole studentRole = Program.GetRole("student");
                                 _ = Program.AddRoleToUser(discordUser, studentRole);
-                                Program.Log(new LogMessage(LogSeverity.Info, "CanvasQuiz", "Added a new user with id: " + canvasQuizRecord.User + " (" + canvasQuizRecord.StudentId +")"));
+                                FileLogger.Instance.Log(new LogMessage(LogSeverity.Info, "CanvasQuiz", "Added a new user with id: " + canvasQuizRecord.User + " (" + canvasQuizRecord.StudentId +")"));
+                                notification += "Added a new user with id: " + canvasQuizRecord.User + " (" + canvasQuizRecord.StudentId + ")\n";
+                                
                             }
                             else
                             {
@@ -221,6 +224,10 @@ namespace DiscordRoleBot
                         }
                     }
                     mut.Release();
+                    if(notification.Length > 0)
+                    {
+                        Program.Notify(notification);
+                    }
                 }
             }
             return success;

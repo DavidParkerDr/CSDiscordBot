@@ -20,7 +20,7 @@ namespace DiscordRoleBot.Modules
             SocketGuildUser requester = Program.GetSocketGuildUser(requesterLookup);
             SocketRole staffRole = Program.GetRole("staff");
             string reply = "Something went wrong, not sure what.";
-
+            string lookupString = parameters == null ? "" : parameters.Trim();
             if (!requester.Roles.Contains(staffRole))
             {
                 // you need to be staff to do a whois lookup
@@ -32,9 +32,6 @@ namespace DiscordRoleBot.Modules
                 {
                     if (parameters != null)
                     {
-                        
-                        string lookupString = parameters.Trim();
-
                         if (lookupString.Contains('#'))
                         {
                             // discord user lookup
@@ -65,11 +62,12 @@ namespace DiscordRoleBot.Modules
                                             if (student.StudentId != studentLookupResult.UniId)
                                             {
                                                 //something went wrong in the lookup
-                                                _ = Program.Log(new LogMessage(LogSeverity.Error, "CanvasLookup", "student.StudentId (" + student.StudentId + ") != studentLookupResult.UniId(" + studentLookupResult.UniId + ")"));
+                                                _ = FileLogger.Instance.Log(new LogMessage(LogSeverity.Error, "CanvasLookup", "student.StudentId (" + student.StudentId + ") != studentLookupResult.UniId(" + studentLookupResult.UniId + ")"));
                                             }
                                             else
                                             {
                                                 reply += "Their name is: " + studentLookupResult.Name + ". Their email is: " + studentLookupResult.Email + ". Their username is: " + studentLookupResult.LoginId + ".";
+                                                _ = FileLogger.Instance.Log(new LogMessage(LogSeverity.Info, "CanvasLookup", "[Whois]: " + requesterLookup + " asked who: " + lookupString + " is and was told: " + reply"));
                                             }
                                         }
                                         else
@@ -127,6 +125,7 @@ namespace DiscordRoleBot.Modules
                                         {
                                             string usernamePlusDiscriminator = discordUser.Username + "#" + discordUser.Discriminator;
                                             reply += " Their current Discord handle on this server is: " + usernamePlusDiscriminator + ".";
+                                            _ = FileLogger.Instance.Log(new LogMessage(LogSeverity.Info, "CanvasLookup", "[Whois]: " + requesterLookup + " asked who: " + lookupString + " is and was told: " + reply));
                                         }
                                         
                                     }
@@ -168,7 +167,8 @@ namespace DiscordRoleBot.Modules
             }
 
             Guid replyId = Program.AddMessageToQueue(requester, reply);
-            _ = requester.GetOrCreateDMChannelAsync().ContinueWith(Program.SendMessage, replyId);
+            _ = requester.GetOrCreateDMChannelAsync().ContinueWith(Program.SendMessage, replyId);            
+            _ = FileLogger.Instance.Log(new LogMessage(LogSeverity.Info, "CanvasLookup", "[Whois]: " + requesterLookup + " asked who: " + lookupString + " is and was told: " + reply));
         }
 
 #pragma warning disable CS1998 // Async method lacks 'await' operators and will run synchronously

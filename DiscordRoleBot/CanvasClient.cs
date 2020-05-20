@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.Configuration;
+﻿using Discord;
+using Microsoft.Extensions.Configuration;
 using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
@@ -226,7 +227,7 @@ namespace DiscordRoleBot
 
                     // in theory we should now have a complete response that we can inspect for new responses and update the student role
                     // todo here
-                    Console.WriteLine("Got the quiz responses!");
+                    _ = FileLogger.Instance.Log(new LogMessage(LogSeverity.Info, "CanvasQuiz", "Got the quiz responses!")); 
                     StudentsFile.Instance.UnpackFromCanvas(response);
                 }
                 catch (Exception e)

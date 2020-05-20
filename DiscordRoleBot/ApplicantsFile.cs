@@ -62,11 +62,11 @@ namespace DiscordRoleBot
             }
             catch(FileNotFoundException e)
             {
-                Program.Log(new LogMessage(LogSeverity.Warning, "Bot", "Could not find Applicants File with name: " + fileName));
+                FileLogger.Instance.Log(new LogMessage(LogSeverity.Warning, "Bot", "Could not find Applicants File with name: " + fileName));
             }
             catch (Exception e)
             {
-                Program.Log(new LogMessage(LogSeverity.Warning, "Bot", "Could not load Applicants File with name: " + fileName + "because of: " + e.Message));
+                FileLogger.Instance.Log(new LogMessage(LogSeverity.Warning, "Bot", "Could not load Applicants File with name: " + fileName + "because of: " + e.Message));
             }
 
         }

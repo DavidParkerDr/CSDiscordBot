@@ -28,7 +28,7 @@ namespace DiscordRoleBot
         {
             _client = new DiscordSocketClient(new DiscordSocketConfig() {AlwaysDownloadUsers = true});
                         
-            _client.Log += Log;
+            _client.Log += FileLogger.Instance.Log;
             _config = new ConfigurationBuilder()
                 .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true)
                 .Build();
@@ -67,7 +67,7 @@ namespace DiscordRoleBot
             // ValidateAllStudentUsers();
             //FindAllNoRoleUsers();
             Thread CanvasThread = new Thread(CanvasClient.Instance.Go);
-           // CanvasThread.Start();
+            CanvasThread.Start();
             return Task.CompletedTask;
         }
 
@@ -124,7 +124,7 @@ namespace DiscordRoleBot
             else
             {
                 string errorMessage = "Tried to send message " + message.Notification.ToString() + " to " + message.User.Username + " but it failed when trying to get a DM channel.";
-                _ = Log(new LogMessage(LogSeverity.Error, "Bot", errorMessage + " Retrying..."));
+                _ = FileLogger.Instance.Log(new LogMessage(LogSeverity.Error, "Bot", errorMessage + " Retrying..."));
                 m.Retries++;
                 if (m.Retries <= 2)
                 {
@@ -135,7 +135,7 @@ namespace DiscordRoleBot
                     if (!_config.GetSection("NotifyList").Get<ulong[]>().Contains(message.User.Id))
                     {
                         Notify(errorMessage);
-                        _ = Log(new LogMessage(LogSeverity.Error, "Bot", errorMessage));
+                        _ = FileLogger.Instance.Log(new LogMessage(LogSeverity.Error, "Bot", errorMessage));
                     }
                     _messages.Remove((Guid)arg2);
                 }
@@ -150,12 +150,12 @@ namespace DiscordRoleBot
             if (task.Status == TaskStatus.RanToCompletion)
             {
                 _messages.Remove((Guid)arg2);
-                _ = Log(new LogMessage(LogSeverity.Info, "Bot", "Sent message " + task.Result.Content + " to " + message.User.Username + "#" + message.User.Discriminator + "."));
+                _ = FileLogger.Instance.Log(new LogMessage(LogSeverity.Info, "Bot", "Sent message " + task.Result.Content + " to " + message.User.Username + "#" + message.User.Discriminator + "."));
             }
             else
             {
                 string errorMessage = "Tried to send message " + message.Notification + " to " + message.User.Username + "#" + message.User.Discriminator + " but it failed.";
-                _ = Log(new LogMessage(LogSeverity.Error, "Bot", errorMessage + " Retrying..."));
+                _ = FileLogger.Instance.Log(new LogMessage(LogSeverity.Error, "Bot", errorMessage + " Retrying..."));
                 m.Retries++;
                 if (m.Retries <= 2)
                 {
@@ -166,26 +166,26 @@ namespace DiscordRoleBot
                     if (!_config.GetSection("NotifyList").Get<ulong[]>().Contains(message.User.Id))
                     {
                         Notify(errorMessage);
-                        _ = Log(new LogMessage(LogSeverity.Error, "Bot", errorMessage));
+                        _ = FileLogger.Instance.Log(new LogMessage(LogSeverity.Error, "Bot", errorMessage));
                     }
                     _messages.Remove((Guid)arg2);
                 }
             }
         }      
 
-        public static Task Log(LogMessage msg)
-        {
-            if(msg.Severity == LogSeverity.Error)
-            {
-                Console.ForegroundColor = ConsoleColor.Red;
-            }
-            else
-            {
-                Console.ForegroundColor = ConsoleColor.Gray;
-            }
-            Console.WriteLine(msg.ToString());
-            return Task.CompletedTask;
-        }
+        //public static Task Log(LogMessage msg)
+        //{
+        //    if(msg.Severity == LogSeverity.Error)
+        //    {
+        //        Console.ForegroundColor = ConsoleColor.Red;
+        //    }
+        //    else
+        //    {
+        //        Console.ForegroundColor = ConsoleColor.Gray;
+        //    }
+        //    Console.WriteLine(msg.ToString());
+        //    return Task.CompletedTask;
+        //}
 
         private static void Notify(SocketUser user, string notification)
         {
@@ -201,7 +201,7 @@ namespace DiscordRoleBot
             }
             else
             {
-                _ = Log(new LogMessage(LogSeverity.Error, "Bot", "user with id: " + userId + " is not found"));
+                _ = FileLogger.Instance.Log(new LogMessage(LogSeverity.Error, "Bot", "user with id: " + userId + " is not found"));
             }
         }
         /// <summary>
@@ -209,7 +209,7 @@ namespace DiscordRoleBot
         /// NotifyList section
         /// </summary>
         /// <param name="notification">the string message to be sent to the notify users</param>
-        private static void Notify(string notification)
+        public static void Notify(string notification)
         {
             var arrayOfNotifyIds = _config.GetSection("NotifyList").Get<ulong[]>();
             foreach(ulong notifyId in arrayOfNotifyIds)
@@ -329,7 +329,7 @@ namespace DiscordRoleBot
                 }
             }    
         }
-        private static async Task RemoveRole(string usernamePlusDescriminator, SocketRole role)
+        public static async Task RemoveRole(string usernamePlusDescriminator, SocketRole role)
         {
             SocketGuild guild = GetGuild();
             if (guild != null)
@@ -341,16 +341,18 @@ namespace DiscordRoleBot
                 }
             }
         }
-        private static async Task RemoveRole(SocketGuildUser user, SocketRole role)
+        public static async Task RemoveRole(SocketGuildUser user, SocketRole role)
         {
             Task t = user.RemoveRoleAsync(role);
             await t;
             if (t.IsCompletedSuccessfully)
             {
-                return;
+                //Notify("Hello. I added the role: " + role.Name + " to " + user.Nickname + " (" + user.Username + "#" + user.Discriminator +").");
+                _ = FileLogger.Instance.Log(new LogMessage(LogSeverity.Info, "Bot", "[RemoveRole] guild role with name: " + role.Name + " is added to: " + user.Nickname + " (" + user.Username + "#" + user.Discriminator + ")"));
             }
             else
             {
+                _ = FileLogger.Instance.Log(new LogMessage(LogSeverity.Error, "Bot", "[RemoveRole] guild role with name: " + role.Name + " failed to be removed from: " + user.Nickname + " (" + user.Username + "#" + user.Discriminator + ")"));
                 throw t.Exception;
             }
         }
@@ -360,10 +362,12 @@ namespace DiscordRoleBot
             await t;
             if (t.IsCompletedSuccessfully)
             {
-                Notify("Hello. I added the role: " + role.Name + " to " + user.Nickname + " (" + user.Username + "#" + user.Discriminator +").");
+                //Notify("Hello. I added the role: " + role.Name + " to " + user.Nickname + " (" + user.Username + "#" + user.Discriminator +").");
+                _ = FileLogger.Instance.Log(new LogMessage(LogSeverity.Info, "Bot", "[AddRole] guild role with name: " + role.Name + " is added to: " + user.Nickname + " (" + user.Username + "#" + user.Discriminator + ")"));
             }
             else
             {
+                _ = FileLogger.Instance.Log(new LogMessage(LogSeverity.Error, "Bot", "[AddRole] guild role with name: " + role.Name + " failed to be added to: " + user.Nickname + " (" + user.Username + "#" + user.Discriminator + ")"));
                 throw t.Exception;
             }
         }
@@ -377,7 +381,7 @@ namespace DiscordRoleBot
             }
             else
             {
-                _ = Log(new LogMessage(LogSeverity.Error, "Bot", "[AddRole] guild role with id: " + roleId + " is not found"));
+                _ = FileLogger.Instance.Log(new LogMessage(LogSeverity.Error, "Bot", "[AddRole] guild role with id: " + roleId + " is not found"));
             }
         }
         private static async Task AddRoleToUser(SocketGuildUser user, string roleName)
@@ -390,7 +394,7 @@ namespace DiscordRoleBot
             }
             else
             {
-                _ = Log(new LogMessage(LogSeverity.Error, "Bot", "[AddRole] guild role with name: " + roleName + " is not found"));
+                _ = FileLogger.Instance.Log(new LogMessage(LogSeverity.Error, "Bot", "[AddRole] guild role with name: " + roleName + " is not found"));
             }
         }
         private static async Task AddRoleToUsers(List<SocketGuildUser> users, SocketRole role)

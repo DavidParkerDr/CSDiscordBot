@@ -9,11 +9,11 @@ using System.Threading.Tasks;
 
 namespace DiscordRoleBot.Modules
 {
-    public class AddRoleModule : ModuleBase<SocketCommandContext>
+    public class RemoveRoleModule : ModuleBase<SocketCommandContext>
     {
-        [Command("addrole")]
-        [Summary("adds a specified role (if it exists) to a specified user (if they exist)")]
-        public async Task AddRoleAsync([Remainder] [Summary("The role to add to a comma separated list of users")] string parameters = null)
+        [Command("removerole")]
+        [Summary("removes a specified role (if it exists) from a specified user (if they exist)")]
+        public async Task RemoveRoleAsync([Remainder] [Summary("The role to remove and the comma separated list of users to remove it from")] string parameters = null)
         {
             string userLookup = Context.User.Username + "#" + Context.User.Discriminator;
             SocketGuildUser user = Program.GetSocketGuildUser(userLookup);
@@ -34,7 +34,7 @@ namespace DiscordRoleBot.Modules
                             string[] parametersTokens = parameters.Split(',');
                             int totalNumber = parametersTokens.Length;
                             int count = 0;
-                            foreach(string parameterToken in parametersTokens)
+                            foreach (string parameterToken in parametersTokens)
                             {
                                 string partialReply = "Something went wrong and I don't know what.";
                                 string roleAddee = parameterToken.Trim();
@@ -50,9 +50,9 @@ namespace DiscordRoleBot.Modules
                                         Student student = null;
                                         if (StudentsFile.Instance.TryGetDiscordStudent(discordSnowflake, out student))
                                         {
-                                            _ = Program.AddRoleToUser(discordUser, role);
-                                            partialReply = "I have added the role: " + roleString + " to user: " + discordUser.Username + "#" + discordUser.Discriminator + " (" + student.StudentId + ")";
-                                            
+                                            _ = Program.RemoveRole(discordUser, role);
+                                            partialReply = "I have removed the role: " + roleString + " from user: " + discordUser.Username + "#" + discordUser.Discriminator + " (" + student.StudentId + ")";
+
                                         }
                                         else
                                         {
@@ -74,8 +74,8 @@ namespace DiscordRoleBot.Modules
                                         {
                                             // this discord user matches one of the students
                                             SocketGuildUser discordUser = Program.GetSocketGuildUser(student.DiscordSnowflake);
-                                            _ = Program.AddRoleToUser(discordUser, role);
-                                            partialReply = "I have added the role: " + roleString + " to user: " + discordUser.Username + "#" + discordUser.Discriminator + " (" + student.StudentId + ")";
+                                            _ = Program.RemoveRole(discordUser, role);
+                                            partialReply = "I have removed the role: " + roleString + " from user: " + discordUser.Username + "#" + discordUser.Discriminator + " (" + student.StudentId + ")";
                                         }
                                         else
                                         {
@@ -102,13 +102,13 @@ namespace DiscordRoleBot.Modules
                     else
                     {
                         // no space so there is a shortage of parameters
-                        reply = "You attempted to use this command without its required parameters: the role you want to add, and the student id that you want to add it to.";
+                        reply = "You attempted to use this command without its required parameters: the role you want to remove, and the student id that you want to remove it from.";
                     }
                 }
                 else
                 {
                     // no parameter provided to command
-                    reply = "You attempted to use this command without its required parameters: the role you want to add, and the student id that you want to add it to.";
+                    reply = "You attempted to use this command without its required parameters: the role you want to remove, and the student id that you want to remove it from.";
                 }
             }
             else
