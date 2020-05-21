@@ -17,6 +17,7 @@ namespace DiscordRoleBot
         public static IConfiguration _config = null;
         private static Dictionary<Guid, (int Retries, object Content)> _messages = new Dictionary<Guid, (int, object)>();
 
+        private static bool commandsRegistered = false;
 
         public static void Main(string[] args)
         {
@@ -51,10 +52,8 @@ namespace DiscordRoleBot
         /// <returns></returns>
         private Task ClientReady()
         {
-            //for (int i = 0; i < 10; i++)
-            //{
-            //    Notify("I'm back baby! " + i);
-            //}
+            Notify("I'm back baby!");
+            
 
             string users = "DavidParkerDr#6742,JDixonHull#1878";
             //_ = AddRoleToUsers(GetSocketGuildUsers(users), GetRole("testrole"));
@@ -99,9 +98,13 @@ namespace DiscordRoleBot
         /// <returns></returns>
         private async Task<Task> ClientConnected()
         {
-            DiscordRoleBot.Services.Initialize i = new DiscordRoleBot.Services.Initialize(null, _client);
-            DiscordRoleBot.Services.CommandHandler commandHandler = new DiscordRoleBot.Services.CommandHandler(_client, i.BuildServiceProvider());
-            await commandHandler.InstallCommandsAsync();
+            if (!commandsRegistered)
+            {
+                commandsRegistered = true;
+                DiscordRoleBot.Services.Initialize i = new DiscordRoleBot.Services.Initialize(null, _client);
+                DiscordRoleBot.Services.CommandHandler commandHandler = new DiscordRoleBot.Services.CommandHandler(_client, i.BuildServiceProvider());
+                await commandHandler.InstallCommandsAsync();
+            }
             return Task.CompletedTask;
         }
         public static Guid AddMessageToQueue(SocketUser user, string message)
