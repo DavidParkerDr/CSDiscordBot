@@ -18,6 +18,7 @@ namespace DiscordRoleBot
         private static Dictionary<Guid, (int Retries, object Content)> _messages = new Dictionary<Guid, (int, object)>();
 
         private static bool commandsRegistered = false;
+        private static bool canvasThreadStarted = false;
 
         public static void Main(string[] args)
         {
@@ -65,8 +66,12 @@ namespace DiscordRoleBot
             // StudentsFile.Instance.Save();
             // ValidateAllStudentUsers();
             //FindAllNoRoleUsers();
-            Thread CanvasThread = new Thread(CanvasClient.Instance.Go);
-            CanvasThread.Start();
+            if (!canvasThreadStarted)
+            {
+                canvasThreadStarted = true;
+                Thread CanvasThread = new Thread(CanvasClient.Instance.Go);
+                CanvasThread.Start();
+            }
             return Task.CompletedTask;
         }
 
