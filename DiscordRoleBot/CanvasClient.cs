@@ -202,23 +202,29 @@ namespace DiscordRoleBot
                 try
                 {
                     //First create a new report
+                    _ = FileLogger.Instance.Log(new LogMessage(LogSeverity.Info, "CanvasQuiz", "Starting quiz report build."));
                     string path = @"https://canvas.hull.ac.uk/api/v1/courses/17835/quizzes/20659/reports?as_user_id=sis_user_id:" + canvasUser;
                     string response = await PostStringAsync(path, @"{""quiz_report"":{""report_type"": ""student_analysis"",""includes_all_versions"": true}}");
                     var obj = JObject.Parse(response);
                     bool complete = false;
                     string nextPagePath = null;
                     path = (string)obj["progress_url"] + "?as_user_id=sis_user_id:" + canvasUser;
+                    double progress = 0.0;
                     while (!complete)
                     {
                         Thread.Sleep(5000);
                         
+                        _ = FileLogger.Instance.Log(new LogMessage(LogSeverity.Info, "CanvasQuiz", "Building quiz report progress: " + progress + "%"));
                         (response, nextPagePath) = await GetStringAsync(path);
                         obj = JObject.Parse(response);
-                        if ((double)obj["completion"] == 100.0)
+                        progress = (double)obj["completion"];
+                        if (progress == 100.0)
                         {
                             complete = true;
+                            _ = FileLogger.Instance.Log(new LogMessage(LogSeverity.Info, "CanvasQuiz", "Quiz report complete: " + progress + "%"));
                         }
                     }
+                    _ = FileLogger.Instance.Log(new LogMessage(LogSeverity.Info, "CanvasQuiz", "Retrieving quiz report."));
                     path = "https://canvas.hull.ac.uk/api/v1/courses/17835/quizzes/20659/reports/" + (string)obj["context_id"] + "?as_user_id=sis_user_id:" + canvasUser;
                     (response, nextPagePath) = await GetStringAsync(path);
                     obj = JObject.Parse(response);
@@ -232,15 +238,13 @@ namespace DiscordRoleBot
                 }
                 catch (Exception e)
                 {
-                    Console.ForegroundColor = ConsoleColor.Red;
-                    Console.WriteLine("Failed to grab quiz results:");
-                    Console.WriteLine(e.Message);
+                    string message = e.Message + "\n";
                     while (e.InnerException != null)
                     {
-                        Console.WriteLine("Inner: " + e.InnerException.Message);
+                        message += e.InnerException.Message + "\n";
                         e = e.InnerException;
                     }
-                    Console.ForegroundColor = ConsoleColor.Gray;
+                    _ = FileLogger.Instance.Log(new LogMessage(LogSeverity.Error, "CanvasQuiz", "Failed to get quiz report: " + message));
                 }
 
            

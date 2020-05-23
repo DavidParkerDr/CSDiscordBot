@@ -66,7 +66,7 @@ namespace DiscordRoleBot
             }
             catch (Exception e)
             {
-                FileLogger.Instance.Log(new LogMessage(LogSeverity.Warning, "Bot", "Could not load Applicants File with name: " + fileName + "because of: " + e.Message));
+                FileLogger.Instance.Log(new LogMessage(LogSeverity.Warning, "Bot", "Could not load Applicants File with name: " + fileName + " because of: " + e.Message));
             }
 
         }
@@ -74,33 +74,39 @@ namespace DiscordRoleBot
         {
             //Read the first line of text
             String line = streamReader.ReadLine();
-            do
+            if (!line.IsNullOrEmpty())
             {
-                string[] tokens = line.Split(',');
-                string applicantIdString = tokens[0].Trim();
-                string discordSnowflakeString = tokens[1].Trim();
-                int applicantId = int.Parse(applicantIdString);
-                bool discordConnected = false;
-                ulong discordSnowflake = 0;
-                if (discordSnowflakeString.IsNullOrEmpty() || discordSnowflakeString == "false")
+                do
                 {
-                    discordConnected = false;
+                    string[] tokens = line.Split(',');
+                    string applicantIdString = tokens[0].Trim();
+                    string discordSnowflakeString = tokens[1].Trim();
+                    int applicantId = int.Parse(applicantIdString);
+                    bool discordConnected = false;
+                    ulong discordSnowflake = 0;
+                    if (discordSnowflakeString.IsNullOrEmpty() || discordSnowflakeString == "false")
+                    {
+                        discordConnected = false;
+                    }
+                    else
+                    {
+                        discordConnected = ulong.TryParse(discordSnowflakeString, out discordSnowflake);
+                    }
+                    Applicant applicant = new Applicant(applicantId, discordSnowflake, discordConnected);
+                    applicants.Add(applicant.ApplicantId, applicant);
+                    if (applicant.DiscordConnected)
+                    {
+                        applicantsDiscordLookup.Add(applicant.DiscordSnowflake, applicant);
+                    }
+                    line = streamReader.ReadLine();
                 }
-                else
-                {
-                    discordConnected = ulong.TryParse(discordSnowflakeString, out discordSnowflake);
-                }
-                Applicant applicant = new Applicant(applicantId, discordSnowflake, discordConnected);
-                applicants.Add(applicant.ApplicantId, applicant);
-                if (applicant.DiscordConnected)
-                {
-                    applicantsDiscordLookup.Add(applicant.DiscordSnowflake, applicant);
-                }
-                line = streamReader.ReadLine();
+                //Continue to read until you reach end of file
+                while (line != null);
             }
-            //Continue to read until you reach end of file
-            while (line != null);
-
+            else
+            {
+                FileLogger.Instance.Log(new LogMessage(LogSeverity.Warning, "Bot", "Could not load Applicants File because it is empty."));
+            }
 
         }
         public void Save(string fileName = "applicants.txt")
