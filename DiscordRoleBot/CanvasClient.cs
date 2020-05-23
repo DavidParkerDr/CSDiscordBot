@@ -204,37 +204,51 @@ namespace DiscordRoleBot
                     //First create a new report
                     _ = FileLogger.Instance.Log(new LogMessage(LogSeverity.Info, "CanvasQuiz", "Starting quiz report build."));
                     string path = @"https://canvas.hull.ac.uk/api/v1/courses/17835/quizzes/20659/reports?as_user_id=sis_user_id:" + canvasUser;
-                    string response = await PostStringAsync(path, @"{""quiz_report"":{""report_type"": ""student_analysis"",""includes_all_versions"": true}}");
-                    var obj = JObject.Parse(response);
-                    bool complete = false;
-                    string nextPagePath = null;
-                    path = (string)obj["progress_url"] + "?as_user_id=sis_user_id:" + canvasUser;
-                    double progress = 0.0;
-                    while (!complete)
+                    int timeout = 1000;
+                    var task = PostStringAsync(path, @"{""quiz_report"":{""report_type"": ""student_analysis"",""includes_all_versions"": true}}");
+                    if (await Task.WhenAny(task, Task.Delay(timeout)) == task)
                     {
-                        Thread.Sleep(5000);
-                        
-                        _ = FileLogger.Instance.Log(new LogMessage(LogSeverity.Info, "CanvasQuiz", "Building quiz report progress: " + progress + "%"));
+                        // task completed within timeout
+                        string response = task.Result;
+                        // string response = await PostStringAsync(path, @"{""quiz_report"":{""report_type"": ""student_analysis"",""includes_all_versions"": true}}");
+                        var obj = JObject.Parse(response);
+                        bool complete = false;
+                        string nextPagePath = null;
+                        path = (string)obj["progress_url"] + "?as_user_id=sis_user_id:" + canvasUser;
+                        double progress = 0.0;
+                        while (!complete)
+                        {
+                            Thread.Sleep(5000);
+
+                            _ = FileLogger.Instance.Log(new LogMessage(LogSeverity.Info, "CanvasQuiz", "Building quiz report progress: " + progress + "%"));
+                            (response, nextPagePath) = await GetStringAsync(path);
+                            obj = JObject.Parse(response);
+                            progress = (double)obj["completion"];
+                            if (progress == 100.0)
+                            {
+                                complete = true;
+                                _ = FileLogger.Instance.Log(new LogMessage(LogSeverity.Info, "CanvasQuiz", "Quiz report complete: " + progress + "%"));
+                            }
+                        }
+                        _ = FileLogger.Instance.Log(new LogMessage(LogSeverity.Info, "CanvasQuiz", "Retrieving quiz report."));
+                        path = "https://canvas.hull.ac.uk/api/v1/courses/17835/quizzes/20659/reports/" + (string)obj["context_id"] + "?as_user_id=sis_user_id:" + canvasUser;
                         (response, nextPagePath) = await GetStringAsync(path);
                         obj = JObject.Parse(response);
-                        progress = (double)obj["completion"];
-                        if (progress == 100.0)
-                        {
-                            complete = true;
-                            _ = FileLogger.Instance.Log(new LogMessage(LogSeverity.Info, "CanvasQuiz", "Quiz report complete: " + progress + "%"));
-                        }
-                    }
-                    _ = FileLogger.Instance.Log(new LogMessage(LogSeverity.Info, "CanvasQuiz", "Retrieving quiz report."));
-                    path = "https://canvas.hull.ac.uk/api/v1/courses/17835/quizzes/20659/reports/" + (string)obj["context_id"] + "?as_user_id=sis_user_id:" + canvasUser;
-                    (response, nextPagePath) = await GetStringAsync(path);
-                    obj = JObject.Parse(response);
-                    path = (string)obj["file"]["url"] + "&as_user_id=sis_user_id:" + canvasUser;
-                    (response, nextPagePath) = await GetStringAsync(path);
+                        path = (string)obj["file"]["url"] + "&as_user_id=sis_user_id:" + canvasUser;
+                        (response, nextPagePath) = await GetStringAsync(path);
 
-                    // in theory we should now have a complete response that we can inspect for new responses and update the student role
-                    // todo here
-                    _ = FileLogger.Instance.Log(new LogMessage(LogSeverity.Info, "CanvasQuiz", "Got the quiz responses!")); 
-                    StudentsFile.Instance.UnpackFromCanvas(response);
+                        // in theory we should now have a complete response that we can inspect for new responses and update the student role
+                        // todo here
+                        _ = FileLogger.Instance.Log(new LogMessage(LogSeverity.Info, "CanvasQuiz", "Got the quiz responses!"));
+                        StudentsFile.Instance.UnpackFromCanvas(response);
+                    }
+                    else
+                    {
+                        // timeout logic
+                        //_ = FileLogger.Instance.Log(new LogMessage(LogSeverity.Error, "CanvasQuiz", "Failed to get quiz report: timed out after " + timeout + " seconds."));
+                        throw new TimeoutException("Failed to get quiz report: timed out after " + timeout + " seconds.");                        
+                    }
+                   
                 }
                 catch (Exception e)
                 {
