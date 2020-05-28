@@ -21,6 +21,7 @@ namespace DiscordRoleBot.Modules
             SocketRole staffRole = Program.GetRole("staff");
             string reply = "Something went wrong, not sure what.";
             string lookupString = parameters == null ? "" : parameters.Trim();
+            ulong discordId = 0;
             if (!requester.Roles.Contains(staffRole))
             {
                 // you need to be staff to do a whois lookup
@@ -147,6 +148,64 @@ namespace DiscordRoleBot.Modules
                             // university username lookup
                             // should return discord username plus discriminator
                             reply = "Looking up a Discord user via their university login id is currently not implemented fully. Please use their 9 digit university or applicant id instead.";
+                        }
+                        else if (ulong.TryParse(lookupString, out discordId))
+                        {
+                            // discord user lookup based on their snowflake
+                            // should return university id and user details
+                            SocketGuildUser user = Program.GetSocketGuildUser(discordId);
+                            if (user != null)
+                            {
+                                //matches server discord user
+                                ulong discordSnowflake = user.Id;
+                                Applicant applicant = null;
+                                if (ApplicantsFile.Instance.TryGetDiscordApplicant(discordSnowflake, out applicant))
+                                {
+                                    // this discord user matches one of the applicants
+                                    reply = "That user (" + lookupString + ") is an applicant. Their applicant id is: " + applicant.ApplicantId + ".";
+                                    reply += "For more information, you will need to make an offline request based on their applicant id.";
+                                }
+                                else
+                                {
+                                    // they are not an applicant so check for them being a student.
+                                    Student student = null;
+                                    if (StudentsFile.Instance.TryGetDiscordStudent(discordSnowflake, out student))
+                                    {
+                                        // this discord user matches one of the applicants
+                                        reply = "That user (" + lookupString + ") is an student. Their student id is: " + student.StudentId + ".";
+                                        StudentLookupResult studentLookupResult = await CanvasClient.Instance.GetCanvasUserFrom9DigitId(student.StudentId);
+                                        if (studentLookupResult != null)
+                                        {
+                                            if (student.StudentId != studentLookupResult.UniId)
+                                            {
+                                                //something went wrong in the lookup
+                                                _ = FileLogger.Instance.Log(new LogMessage(LogSeverity.Error, "CanvasLookup", "student.StudentId (" + student.StudentId + ") != studentLookupResult.UniId(" + studentLookupResult.UniId + ")"));
+                                            }
+                                            else
+                                            {
+                                                reply += "Their name is: " + studentLookupResult.Name + ". Their email is: " + studentLookupResult.Email + ". Their username is: " + studentLookupResult.LoginId + ".";
+                                                _ = FileLogger.Instance.Log(new LogMessage(LogSeverity.Info, "CanvasLookup", "[Whois]: " + requesterLookup + " asked who: " + lookupString + " is and was told: " + reply));
+                                            }
+                                        }
+                                        else
+                                        {
+                                            // student not found on Canvas
+                                            reply += " But they were not found on Canvas for some reason.";
+                                        }
+                                    }
+                                    else
+                                    {
+                                        // not found in our StudentsFile lookup either
+                                        reply = "That user (" + lookupString + ") was not found in our records. Please check that you have typed it correctly. They may not have validated their Discord username.";
+                                    }
+                                }
+                            }
+                            else
+                            {
+                                // no user on the server matches that combo
+                                reply = "That user (" + lookupString + ") doesn't exist on the server. Please check that you have typed it correctly.";
+                            }
+
                         }
                         else
                         {
