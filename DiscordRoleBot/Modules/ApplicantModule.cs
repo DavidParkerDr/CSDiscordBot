@@ -18,11 +18,12 @@ namespace DiscordRoleBot.Modules
             string userLookup = Context.User.Username + "#" + Context.User.Discriminator;
             SocketGuildUser user = Program.GetSocketGuildUser(userLookup);
             string reply = "Something went wrong, not sure what.";
+            string applicantReferenceIdString = "";
             if (Context.IsPrivate)
             {
                 if (parameters != null)
                 {
-                    string applicantReferenceIdString = parameters.Trim();
+                    applicantReferenceIdString = parameters.Trim();
 
 
                     if (applicantReferenceIdString.Length != 9)
@@ -84,6 +85,9 @@ namespace DiscordRoleBot.Modules
 
             Guid replyId = Program.AddMessageToQueue(user, reply);
             _ = user.GetOrCreateDMChannelAsync().ContinueWith(Program.SendMessage, replyId);
+            _ = FileLogger.Instance.Log(new LogMessage(LogSeverity.Info, "Bot", "[Applicant]: " + userLookup + " sent applicant id " + applicantReferenceIdString + " and was told: " + reply));
+            string notification = "[Applicant]: " + userLookup + " sent applicant id " + applicantReferenceIdString + " and was told: " + reply;
+            Program.Notify(notification);
         }
         
 #pragma warning disable CS1998 // Async method lacks 'await' operators and will run synchronously
