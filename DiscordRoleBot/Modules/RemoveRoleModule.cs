@@ -122,8 +122,8 @@ namespace DiscordRoleBot.Modules
                 reply = "Please send me this request in a Direct Message (you can reply to this message if you like). You should delete your previous public message if you can.";
             }
 
-            Guid replyId = Program.AddMessageToQueue(user, reply);
-            _ = user.GetOrCreateDMChannelAsync().ContinueWith(Program.SendMessage, replyId);
+            Guid replyId = Program.AddMessageToQueue(requester, reply);
+            _ = requester.GetOrCreateDMChannelAsync().ContinueWith(Program.SendMessage, replyId);
         }
 
 #pragma warning disable CS1998 // Async method lacks 'await' operators and will run synchronously
