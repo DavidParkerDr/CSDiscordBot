@@ -92,11 +92,45 @@ namespace DiscordRoleBot
                     {
                         discordConnected = ulong.TryParse(discordSnowflakeString, out discordSnowflake);
                     }
-                    Applicant applicant = new Applicant(applicantId, discordSnowflake, discordConnected);
-                    applicants.Add(applicant.ApplicantId, applicant);
-                    if (applicant.DiscordConnected)
+                    Applicant existingApplicant = null;
+                    if (!applicants.TryGetValue(applicantId, out existingApplicant))
                     {
-                        applicantsDiscordLookup.Add(applicant.DiscordSnowflake, applicant);
+                        Applicant applicant = new Applicant(applicantId, discordSnowflake, discordConnected);
+                        applicants.Add(applicant.ApplicantId, applicant);
+                        if (applicant.DiscordConnected)
+                        {
+                            applicantsDiscordLookup.Add(applicant.DiscordSnowflake, applicant);
+                        }
+                    }
+                    else
+                    {
+                        // if the current record has a discord id then we can potentially fill in the blank of an existing.
+                        if (discordConnected)
+                        {
+                            // the line in the file has a discord snowflake, need to check if the existing one does
+                            if (existingApplicant.DiscordConnected)
+                            {
+                                // this is a bit weird as there is a duplicate and both have a discord id
+                                if(discordSnowflake == existingApplicant.DiscordSnowflake)
+                                {
+                                    // the snowflakes are a match, which is weird but ok
+                                    string warningMessage = "The applicants file contains a duplicate with the same Discord ids: ApplicantID(" + applicantId.ToString() + ") DiscordId(" + discordSnowflake.ToString() + " - " + existingApplicant.DiscordSnowflake.ToString() + ").";
+                                    _ = FileLogger.Instance.Log(new LogMessage(LogSeverity.Warning, "Bot", warningMessage));
+                                }
+                                else
+                                {
+                                    // the snowflakes are different... this should not happen
+                                    string errorMessage = "The applicants file contains a duplicate with different Discord ids: ApplicantID(" + applicantId.ToString() + ") DiscordId(" + discordSnowflake.ToString() + " - " + existingApplicant.DiscordSnowflake.ToString() + ").";
+                                    _ = FileLogger.Instance.Log(new LogMessage(LogSeverity.Error, "Bot", errorMessage));
+                                }
+                            }
+                            else
+                            {
+                                string warningMessage = "The applicants file contains a duplicate but this one has a DiscordId so adding it: ApplicantID(" + applicantId.ToString() + ") DiscordId(" + discordSnowflake.ToString() + ").";
+                                _ = FileLogger.Instance.Log(new LogMessage(LogSeverity.Warning, "Bot", warningMessage));
+                                existingApplicant.AddDiscordSnowflake(discordSnowflake);
+                            }
+                        }
                     }
                     line = streamReader.ReadLine();
                 }
