@@ -16,7 +16,7 @@ namespace DiscordRoleBot.Modules
         public async Task AssignApplicantAsync([Remainder] [Summary("The applicant id to verify")] string parameters = null)
         {
             string userLookup = Context.User.Username + "#" + Context.User.Discriminator;
-            SocketGuildUser user = Program.GetSocketGuildUser(userLookup);
+            SocketGuildUser user = Bot.GetSocketGuildUser(userLookup);
             string reply = "Something went wrong, not sure what.";
             string applicantReferenceIdString = "";
             if (Context.IsPrivate)
@@ -54,7 +54,7 @@ namespace DiscordRoleBot.Modules
                                 if (snowflakeAdded)
                                 {
                                     // assignRole of applicant as they have supplied a valid id
-                                    _ = Program.AddRoleToUser(user, Program.GetRole("applicant"));
+                                    _ = Bot.AddRoleToUser(user, Bot.GetRole("applicant"));
                                     reply = "Thanks. Welcome to the Computer Science and Technology Discord Server. As an applicant you now have access to the Applicant Zone; check out the channels in there and feel free to talk amongst yourselves or ask us any questions that you like.";
                                     //add applicant to discordLookup list
                                     ApplicantsFile.Instance.UpdateDiscordLookup(applicant);
@@ -83,11 +83,11 @@ namespace DiscordRoleBot.Modules
                 reply = "Please send me this request in a Direct Message (you can reply to this message if you like). You should delete your previous public message if you can.";
             }
 
-            Guid replyId = Program.AddMessageToQueue(user, reply);
-            _ = user.GetOrCreateDMChannelAsync().ContinueWith(Program.SendMessage, replyId);
+            Bot.SendMessage(user, reply);
+
             _ = FileLogger.Instance.Log(new LogMessage(LogSeverity.Info, "Bot", "[Applicant]: " + userLookup + " sent applicant id " + applicantReferenceIdString + " and was told: " + reply));
             string notification = "[Applicant]: " + userLookup + " sent applicant id " + applicantReferenceIdString + " and was told: " + reply;
-            Program.Notify(notification);
+            Bot.Notify(notification);
         }
         
 #pragma warning disable CS1998 // Async method lacks 'await' operators and will run synchronously

@@ -134,7 +134,7 @@ namespace DiscordRoleBot
                 string discordUsernamePlusDiscriminatorString = tokens[1].Trim();
                 string studentIdString = tokens[0].Trim();
                 int studentId = int.Parse(studentIdString);
-                SocketGuildUser discordUser = Program.GetSocketGuildUser(discordUsernamePlusDiscriminatorString);
+                SocketGuildUser discordUser = Bot.GetSocketGuildUser(discordUsernamePlusDiscriminatorString);
                 if(discordUser != null)
                 {
                     ulong discordSnowflake = discordUser.Id;
@@ -225,13 +225,13 @@ namespace DiscordRoleBot
                                     else
                                     {
                                         //this quiz entry is by a student that does not have a discord record
-                                        SocketGuildUser discordUser = Program.GetSocketGuildUser(canvasQuizRecord.User);
+                                        SocketGuildUser discordUser = Bot.GetSocketGuildUser(canvasQuizRecord.User);
                                         if (discordUser != null)
                                         {
                                             student = new Student(canvasQuizRecord.StudentId, discordUser.Id);
                                             AddStudent(student);
-                                            SocketRole studentRole = Program.GetRole("student");
-                                            _ = Program.AddRoleToUser(discordUser, studentRole);
+                                            SocketRole studentRole = Bot.GetRole("student");
+                                            _ = Bot.AddRoleToUser(discordUser, studentRole);
                                             FileLogger.Instance.Log(new LogMessage(LogSeverity.Info, "CanvasQuiz", "Added a new user with id: " + canvasQuizRecord.User + " (" + canvasQuizRecord.StudentId + ")"));
                                             notification += "Added a new user with id: " + canvasQuizRecord.User + " (" + canvasQuizRecord.StudentId + ")\n";
 
@@ -263,7 +263,7 @@ namespace DiscordRoleBot
                     mut.Release();
                     if(notification.Length > 0)
                     {
-                        Program.Notify(notification);
+                        Bot.Notify(notification);
                     }
                 }
             }

@@ -32,14 +32,14 @@ namespace DiscordRoleBot
         {
             lookupResults = new Dictionary<Guid, JArray>();
             client = new HttpClient();
-            var canvasAuthentication = Program._config.GetValue(Type.GetType("System.String"), "CanvasAuthentication").ToString();
+            var canvasAuthentication = Bot._config.GetValue(Type.GetType("System.String"), "CanvasAuthentication").ToString();
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", canvasAuthentication);
             client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("*/*"));
         }
         public async Task<StudentLookupResult> GetCanvasUserFrom9DigitId(int uni9DigitId)
         {
             int tryCount = 0;
-            var canvasUser = Program._config.GetValue(Type.GetType("System.String"), "CanvasUser").ToString();
+            var canvasUser = Bot._config.GetValue(Type.GetType("System.String"), "CanvasUser").ToString();
             //string path = "https://canvas.hull.ac.uk/api/v1/courses/17835/users/" + uni9DigitId.ToString() + "/?as_user_id=sis_user_id:" + canvasUser;
             string path = "https://canvas.hull.ac.uk/api/v1/courses/17835/users/sis_user_id:" + uni9DigitId.ToString() + "/?as_user_id=sis_user_id:" + canvasUser;
             while (tryCount < 3)
@@ -108,7 +108,7 @@ namespace DiscordRoleBot
         public async Task<JArray> GetCompleteCanvasUserList()
         {
             Guid lookupId = Guid.NewGuid();
-            var canvasUser = Program._config.GetValue(Type.GetType("System.String"), "CanvasUser").ToString();
+            var canvasUser = Bot._config.GetValue(Type.GetType("System.String"), "CanvasUser").ToString();
             string path = "https://canvas.hull.ac.uk/api/v1/courses/17835/users/" + "?as_user_id=sis_user_id:" + canvasUser + "&per_page=100";
             JArray result = await GetStringAsync(path).ContinueWith(ProcessResponseAsJArray, lookupId).Result;
             return result;
@@ -196,7 +196,7 @@ namespace DiscordRoleBot
 
         public async Task GetQuizResponses()
         {
-            var canvasUser = Program._config.GetValue(Type.GetType("System.String"), "CanvasUser").ToString();
+            var canvasUser = Bot._config.GetValue(Type.GetType("System.String"), "CanvasUser").ToString();
             while (true)
             {
                 try

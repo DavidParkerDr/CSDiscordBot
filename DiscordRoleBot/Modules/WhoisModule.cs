@@ -17,8 +17,8 @@ namespace DiscordRoleBot.Modules
         public async Task GetUserAsync([Remainder] [Summary("The user id to lookup")] string parameters = null)
         {
             string requesterLookup = Context.User.ToString();
-            SocketGuildUser requester = Program.GetSocketGuildUser(requesterLookup);
-            SocketRole staffRole = Program.GetRole("staff");
+            SocketGuildUser requester = Bot.GetSocketGuildUser(requesterLookup);
+            SocketRole staffRole = Bot.GetRole("staff");
             string reply = "Something went wrong, not sure what.";
             string lookupString = parameters == null ? "" : parameters.Trim();
             ulong discordId = 0;
@@ -37,7 +37,7 @@ namespace DiscordRoleBot.Modules
                         {
                             // discord user lookup
                             // should return university id and user details
-                            SocketGuildUser user = Program.GetSocketGuildUser(lookupString);
+                            SocketGuildUser user = Bot.GetSocketGuildUser(lookupString);
                             if (user != null)
                             {
                                 //matches server discord user
@@ -105,7 +105,7 @@ namespace DiscordRoleBot.Modules
                                     reply = "That user (" + lookupString + ") is an applicant.";
                                     if (applicant.DiscordConnected)
                                     {
-                                        SocketGuildUser discordUser = Program.GetSocketGuildUser(applicant.DiscordSnowflake);
+                                        SocketGuildUser discordUser = Bot.GetSocketGuildUser(applicant.DiscordSnowflake);
                                         if(discordUser != null)
                                         {
                                             string usernamePlusDiscriminator = discordUser.Username + "#" + discordUser.Discriminator;
@@ -121,7 +121,7 @@ namespace DiscordRoleBot.Modules
                                     {
                                         // this discord user matches one of the students
                                         reply = "That user (" + lookupString + ") is a student.";
-                                        SocketGuildUser discordUser = Program.GetSocketGuildUser(student.DiscordSnowflake);
+                                        SocketGuildUser discordUser = Bot.GetSocketGuildUser(student.DiscordSnowflake);
                                         if (discordUser != null)
                                         {
                                             string usernamePlusDiscriminator = discordUser.Username + "#" + discordUser.Discriminator;
@@ -153,7 +153,7 @@ namespace DiscordRoleBot.Modules
                         {
                             // discord user lookup based on their snowflake
                             // should return university id and user details
-                            SocketGuildUser user = Program.GetSocketGuildUser(discordId);
+                            SocketGuildUser user = Bot.GetSocketGuildUser(discordId);
                             if (user != null)
                             {
                                 //matches server discord user
@@ -225,8 +225,8 @@ namespace DiscordRoleBot.Modules
                 }
             }
 
-            Guid replyId = Program.AddMessageToQueue(requester, reply);
-            _ = requester.GetOrCreateDMChannelAsync().ContinueWith(Program.SendMessage, replyId);            
+            Bot.SendMessage(requester, reply);
+        
             _ = FileLogger.Instance.Log(new LogMessage(LogSeverity.Info, "CanvasLookup", "[Whois]: " + requesterLookup + " asked who: " + lookupString + " is and was told: " + reply));
         }
 

@@ -16,8 +16,8 @@ namespace DiscordRoleBot.Modules
         public async Task AddRoleAsync([Remainder] [Summary("The role to add to a comma separated list of users")] string parameters = null)
         {
             string userLookup = Context.User.ToString();
-            SocketGuildUser requester = Program.GetSocketGuildUser(userLookup);
-            SocketRole staffRole = Program.GetRole("staff");
+            SocketGuildUser requester = Bot.GetSocketGuildUser(userLookup);
+            SocketRole staffRole = Bot.GetRole("staff");
             string reply = "Something went wrong, not sure what.";
             if(!requester.Roles.Contains(staffRole))
             {
@@ -33,7 +33,7 @@ namespace DiscordRoleBot.Modules
                     if (spacePos != -1)
                     {
                         string roleString = parameters.Substring(0, spacePos);
-                        SocketRole role = Program.GetRole(roleString);
+                        SocketRole role = Bot.GetRole(roleString);
                         if (role != null)
                         {
                             parameters = parameters.Substring(spacePos);
@@ -48,7 +48,7 @@ namespace DiscordRoleBot.Modules
                                 {
                                     // discord user lookup
                                     // should return university id and user details
-                                    SocketGuildUser discordUser = Program.GetSocketGuildUser(roleAddee);
+                                    SocketGuildUser discordUser = Bot.GetSocketGuildUser(roleAddee);
                                     if (discordUser != null)
                                     {
                                         //matches server discord user
@@ -56,7 +56,7 @@ namespace DiscordRoleBot.Modules
                                         Student student = null;
                                         if (StudentsFile.Instance.TryGetDiscordStudent(discordSnowflake, out student))
                                         {
-                                            _ = Program.AddRoleToUser(discordUser, role);
+                                            _ = Bot.AddRoleToUser(discordUser, role);
                                             partialReply = "I have added the role: " + roleString + " to user: " + discordUser.Username + "#" + discordUser.Discriminator + " (" + student.StudentId + ")";
                                             
                                         }
@@ -79,8 +79,8 @@ namespace DiscordRoleBot.Modules
                                         if (StudentsFile.Instance.TryGetStudent(studentId, out student))
                                         {
                                             // this discord user matches one of the students
-                                            SocketGuildUser discordUser = Program.GetSocketGuildUser(student.DiscordSnowflake);
-                                            _ = Program.AddRoleToUser(discordUser, role);
+                                            SocketGuildUser discordUser = Bot.GetSocketGuildUser(student.DiscordSnowflake);
+                                            _ = Bot.AddRoleToUser(discordUser, role);
                                             partialReply = "I have added the role: " + roleString + " to user: " + discordUser.Username + "#" + discordUser.Discriminator + " (" + student.StudentId + ")";
                                         }
                                         else
@@ -122,8 +122,7 @@ namespace DiscordRoleBot.Modules
                 reply = "Please send me this request in a Direct Message (you can reply to this message if you like). You should delete your previous public message if you can.";
             }
 
-            Guid replyId = Program.AddMessageToQueue(requester, reply);
-            _ = requester.GetOrCreateDMChannelAsync().ContinueWith(Program.SendMessage, replyId);
+            Bot.SendMessage(requester, reply);
         }
 
 #pragma warning disable CS1998 // Async method lacks 'await' operators and will run synchronously
