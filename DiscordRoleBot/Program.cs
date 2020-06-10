@@ -99,8 +99,9 @@ namespace DiscordRoleBot
                 _ = arg.GetOrCreateDMChannelAsync().ContinueWith(Program.SendMessage, messageId);
             }
             
-            _ = FileLogger.Instance.Log(new LogMessage(LogSeverity.Info, "Bot", "User of type" + userType + " joined the server"));
-            string notification = "User of type" + userType + " joined the server";
+            
+            string notification = "User " + arg.Username + "#" + arg.Discriminator + "(" + arg.Id + ") of type" + userType + " joined the server.";
+            _ = FileLogger.Instance.Log(new LogMessage(LogSeverity.Info, "Bot", notification));
             Notify(notification);
             
             return Task.CompletedTask;
