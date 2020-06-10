@@ -15,10 +15,16 @@ namespace DiscordRoleBot.Modules
         [Summary("adds a specified role (if it exists) to a specified user (if they exist)")]
         public async Task AddRoleAsync([Remainder] [Summary("The role to add to a comma separated list of users")] string parameters = null)
         {
-            string userLookup = Context.User.Username + "#" + Context.User.Discriminator;
-            SocketGuildUser user = Program.GetSocketGuildUser(userLookup);
+            string userLookup = Context.User.ToString();
+            SocketGuildUser requester = Program.GetSocketGuildUser(userLookup);
+            SocketRole staffRole = Program.GetRole("staff");
             string reply = "Something went wrong, not sure what.";
-            if (Context.IsPrivate)
+            if(!requester.Roles.Contains(staffRole))
+            {
+                // for the time being you need to be staff to ask the bot to add or remove roles
+                reply = "You do not have the necessary privileges to perform that action.";
+            }
+            else if (Context.IsPrivate)
             {
                 if (parameters != null)
                 {
@@ -116,8 +122,8 @@ namespace DiscordRoleBot.Modules
                 reply = "Please send me this request in a Direct Message (you can reply to this message if you like). You should delete your previous public message if you can.";
             }
 
-            Guid replyId = Program.AddMessageToQueue(user, reply);
-            _ = user.GetOrCreateDMChannelAsync().ContinueWith(Program.SendMessage, replyId);
+            Guid replyId = Program.AddMessageToQueue(requester, reply);
+            _ = requester.GetOrCreateDMChannelAsync().ContinueWith(Program.SendMessage, replyId);
         }
 
 #pragma warning disable CS1998 // Async method lacks 'await' operators and will run synchronously
