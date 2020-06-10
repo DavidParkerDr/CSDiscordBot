@@ -15,9 +15,15 @@ namespace DiscordRoleBot.Modules
         [Summary("removes a specified role (if it exists) from a specified user (if they exist)")]
         public async Task RemoveRoleAsync([Remainder] [Summary("The role to remove and the comma separated list of users to remove it from")] string parameters = null)
         {
-            string userLookup = Context.User.Username + "#" + Context.User.Discriminator;
-            SocketGuildUser user = Program.GetSocketGuildUser(userLookup);
+            string userLookup = Context.User.ToString();
+            SocketGuildUser requester = Program.GetSocketGuildUser(userLookup);
+            SocketRole staffRole = Program.GetRole("staff");
             string reply = "Something went wrong, not sure what.";
+            if (!requester.Roles.Contains(staffRole))
+            {
+                // for the time being you need to be staff to ask the bot to add or remove roles
+                reply = "You do not have the necessary privileges to perform that action.";
+            }
             if (Context.IsPrivate)
             {
                 if (parameters != null)

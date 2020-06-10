@@ -16,7 +16,7 @@ namespace DiscordRoleBot.Modules
         [Summary("looks up user")]
         public async Task GetUserAsync([Remainder] [Summary("The user id to lookup")] string parameters = null)
         {
-            string requesterLookup = Context.User.Username + "#" + Context.User.Discriminator;
+            string requesterLookup = Context.User.ToString();
             SocketGuildUser requester = Program.GetSocketGuildUser(requesterLookup);
             SocketRole staffRole = Program.GetRole("staff");
             string reply = "Something went wrong, not sure what.";
