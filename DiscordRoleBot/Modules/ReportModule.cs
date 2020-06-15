@@ -21,8 +21,7 @@ namespace DiscordRoleBot.Modules
             SocketGuildUser requester = Bot.GetSocketGuildUser(requesterLookup);
             SocketRole staffRole = Bot.GetRole("staff");
             string reply = "Something went wrong, not sure what.";
-            string lookupString = parameters == null ? "applicants,students" : parameters.Trim();
-            ulong discordId = 0;
+            parameters = parameters == null ? "applicants,students" : parameters.Trim();
             if (!requester.Roles.Contains(staffRole))
             {
                 // you need to be staff to do a whois lookup
@@ -34,6 +33,7 @@ namespace DiscordRoleBot.Modules
                 {
                     if (parameters != null)
                     {
+                        reply = "Reporting: \n";
                         string[] parametersTokens = parameters.Split(',');
                         foreach(string parameter in parametersTokens)
                         {

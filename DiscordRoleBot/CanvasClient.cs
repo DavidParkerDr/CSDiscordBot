@@ -246,7 +246,7 @@ namespace DiscordRoleBot
                     {
                         // timeout logic
                         //_ = FileLogger.Instance.Log(new LogMessage(LogSeverity.Error, "CanvasQuiz", "Failed to get quiz report: timed out after " + timeout + " seconds."));
-                        throw new TimeoutException("Failed to get quiz report: timed out after " + timeout + " seconds.");                        
+                        throw new TimeoutException("Failed to get quiz report: timed out after " + timeout + " milliseconds.");                        
                     }
                    
                 }
