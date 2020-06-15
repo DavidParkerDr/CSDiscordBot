@@ -25,6 +25,11 @@ namespace DiscordRoleBot
             }
         }
 
+        public int NumberOfRegisteredApplicants()
+        {
+            return applicantsDiscordLookup.Count;
+        }
+
         public bool TryGetApplicant(int applicantId, out Applicant applicant)
         {
             bool success = applicants.TryGetValue(applicantId, out applicant);

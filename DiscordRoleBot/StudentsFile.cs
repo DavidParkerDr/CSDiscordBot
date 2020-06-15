@@ -33,7 +33,10 @@ namespace DiscordRoleBot
                 return instance;
             }
         }
-
+        public int NumberOfRegisteredStudents()
+        {
+            return studentsDiscordLookup.Count;
+        }
         public bool TryGetStudent(int applicantId, out Student student)
         {
             bool success = students.TryGetValue(applicantId, out student);
