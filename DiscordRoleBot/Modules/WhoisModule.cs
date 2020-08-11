@@ -109,7 +109,8 @@ namespace DiscordRoleBot.Modules
                                         if(discordUser != null)
                                         {
                                             string usernamePlusDiscriminator = discordUser.Username + "#" + discordUser.Discriminator;
-                                            reply += " Their current Discord handle on this server is: " + usernamePlusDiscriminator + ".";
+                                            string nickname = discordUser.Nickname;
+                                            reply += " Their current Discord handle on this server is: " + usernamePlusDiscriminator + "(" + nickname + ")" + ".";
                                         }
                                     }
                                 }
@@ -125,7 +126,8 @@ namespace DiscordRoleBot.Modules
                                         if (discordUser != null)
                                         {
                                             string usernamePlusDiscriminator = discordUser.Username + "#" + discordUser.Discriminator;
-                                            reply += " Their current Discord handle on this server is: " + usernamePlusDiscriminator + ".";
+                                            string nickname = discordUser.Nickname;
+                                            reply += " Their current Discord handle on this server is: " + usernamePlusDiscriminator + "(" + nickname + ")" + ".";
                                             _ = FileLogger.Instance.Log(new LogMessage(LogSeverity.Info, "CanvasLookup", "[Whois]: " + requesterLookup + " asked who: " + lookupString + " is and was told: " + reply));
                                         }
                                         
