@@ -42,40 +42,40 @@ namespace DiscordRoleBot.Modules
                             {
                                 //matches server discord user
                                 ulong discordSnowflake = user.Id;
-                                Applicant applicant = null;
-                                if (ApplicantsFile.Instance.TryGetDiscordApplicant(discordSnowflake, out applicant))
+                                Student student = null;
+                                if (StudentsFile.Instance.TryGetDiscordStudent(discordSnowflake, out student))
                                 {
                                     // this discord user matches one of the applicants
-                                    reply = "That user (" + lookupString + ") is an applicant. Their applicant id is: " + applicant.ApplicantId + ".";
-                                    reply += "For more information, you will need to make an offline request based on their applicant id.";
-                                }
-                                else
-                                {
-                                    // they are not an applicant so check for them being a student.
-                                    Student student = null;
-                                    if (StudentsFile.Instance.TryGetDiscordStudent(discordSnowflake, out student))
+                                    reply = "That user (" + lookupString + ") is an student. Their student id is: " + student.StudentId + ".";
+                                    StudentLookupResult studentLookupResult = await CanvasClient.Instance.GetCanvasUserFrom9DigitId(student.StudentId);
+                                    if (studentLookupResult != null)
                                     {
-                                        // this discord user matches one of the applicants
-                                        reply = "That user (" + lookupString + ") is an student. Their student id is: " + student.StudentId + ".";
-                                        StudentLookupResult studentLookupResult = await CanvasClient.Instance.GetCanvasUserFrom9DigitId(student.StudentId);
-                                        if (studentLookupResult != null)
+                                        if (student.StudentId != studentLookupResult.UniId)
                                         {
-                                            if (student.StudentId != studentLookupResult.UniId)
-                                            {
-                                                //something went wrong in the lookup
-                                                _ = FileLogger.Instance.Log(new LogMessage(LogSeverity.Error, "CanvasLookup", "student.StudentId (" + student.StudentId + ") != studentLookupResult.UniId(" + studentLookupResult.UniId + ")"));
-                                            }
-                                            else
-                                            {
-                                                reply += "Their name is: " + studentLookupResult.Name + ". Their email is: " + studentLookupResult.Email + ". Their username is: " + studentLookupResult.LoginId + ".";
-                                                _ = FileLogger.Instance.Log(new LogMessage(LogSeverity.Info, "CanvasLookup", "[Whois]: " + requesterLookup + " asked who: " + lookupString + " is and was told: " + reply));
-                                            }
+                                            //something went wrong in the lookup
+                                            _ = FileLogger.Instance.Log(new LogMessage(LogSeverity.Error, "CanvasLookup", "student.StudentId (" + student.StudentId + ") != studentLookupResult.UniId(" + studentLookupResult.UniId + ")"));
                                         }
                                         else
                                         {
-                                            // student not found on Canvas
-                                            reply += " But they were not found on Canvas for some reason.";
+                                            reply += "Their name is: " + studentLookupResult.Name + ". Their email is: " + studentLookupResult.Email + ". Their username is: " + studentLookupResult.LoginId + ".";
+                                            _ = FileLogger.Instance.Log(new LogMessage(LogSeverity.Info, "CanvasLookup", "[Whois]: " + requesterLookup + " asked who: " + lookupString + " is and was told: " + reply));
                                         }
+                                    }
+                                    else
+                                    {
+                                        // student not found on Canvas
+                                        reply += " But they were not found on Canvas for some reason.";
+                                    }
+                                }
+                                else
+                                {
+                                    // they are not a student so check for them being an applicant.
+                                    Applicant applicant = null;
+                                    if (ApplicantsFile.Instance.TryGetDiscordApplicant(discordSnowflake, out applicant))
+                                    {
+                                        // this discord user matches one of the applicants
+                                        reply = "That user (" + lookupString + ") is an applicant. Their applicant id is: " + applicant.ApplicantId + ".";
+                                        reply += "For more information, you will need to make an offline request based on their applicant id.";
                                     }
                                     else
                                     {
@@ -166,40 +166,40 @@ namespace DiscordRoleBot.Modules
                             {
                                 //matches server discord user
                                 ulong discordSnowflake = user.Id;
-                                Applicant applicant = null;
-                                if (ApplicantsFile.Instance.TryGetDiscordApplicant(discordSnowflake, out applicant))
+                                Student student = null;
+                                if (StudentsFile.Instance.TryGetDiscordStudent(discordSnowflake, out student))
                                 {
                                     // this discord user matches one of the applicants
-                                    reply = "That user (" + lookupString + ") is an applicant. Their applicant id is: " + applicant.ApplicantId + ".";
-                                    reply += "For more information, you will need to make an offline request based on their applicant id.";
-                                }
-                                else
-                                {
-                                    // they are not an applicant so check for them being a student.
-                                    Student student = null;
-                                    if (StudentsFile.Instance.TryGetDiscordStudent(discordSnowflake, out student))
+                                    reply = "That user (" + lookupString + ") is an student. Their student id is: " + student.StudentId + ".";
+                                    StudentLookupResult studentLookupResult = await CanvasClient.Instance.GetCanvasUserFrom9DigitId(student.StudentId);
+                                    if (studentLookupResult != null)
                                     {
-                                        // this discord user matches one of the applicants
-                                        reply = "That user (" + lookupString + ") is an student. Their student id is: " + student.StudentId + ".";
-                                        StudentLookupResult studentLookupResult = await CanvasClient.Instance.GetCanvasUserFrom9DigitId(student.StudentId);
-                                        if (studentLookupResult != null)
+                                        if (student.StudentId != studentLookupResult.UniId)
                                         {
-                                            if (student.StudentId != studentLookupResult.UniId)
-                                            {
-                                                //something went wrong in the lookup
-                                                _ = FileLogger.Instance.Log(new LogMessage(LogSeverity.Error, "CanvasLookup", "student.StudentId (" + student.StudentId + ") != studentLookupResult.UniId(" + studentLookupResult.UniId + ")"));
-                                            }
-                                            else
-                                            {
-                                                reply += "Their name is: " + studentLookupResult.Name + ". Their email is: " + studentLookupResult.Email + ". Their username is: " + studentLookupResult.LoginId + ".";
-                                                _ = FileLogger.Instance.Log(new LogMessage(LogSeverity.Info, "CanvasLookup", "[Whois]: " + requesterLookup + " asked who: " + lookupString + " is and was told: " + reply));
-                                            }
+                                            //something went wrong in the lookup
+                                            _ = FileLogger.Instance.Log(new LogMessage(LogSeverity.Error, "CanvasLookup", "student.StudentId (" + student.StudentId + ") != studentLookupResult.UniId(" + studentLookupResult.UniId + ")"));
                                         }
                                         else
                                         {
-                                            // student not found on Canvas
-                                            reply += " But they were not found on Canvas for some reason.";
+                                            reply += "Their name is: " + studentLookupResult.Name + ". Their email is: " + studentLookupResult.Email + ". Their username is: " + studentLookupResult.LoginId + ".";
+                                            _ = FileLogger.Instance.Log(new LogMessage(LogSeverity.Info, "CanvasLookup", "[Whois]: " + requesterLookup + " asked who: " + lookupString + " is and was told: " + reply));
                                         }
+                                    }
+                                    else
+                                    {
+                                        // student not found on Canvas
+                                        reply += " But they were not found on Canvas for some reason.";
+                                    }
+                                }
+                                else
+                                {
+                                    // they are not a student so check for them being an applicant.
+                                    Applicant applicant = null;
+                                    if (ApplicantsFile.Instance.TryGetDiscordApplicant(discordSnowflake, out applicant))
+                                    {
+                                        // this discord user matches one of the applicants
+                                        reply = "That user (" + lookupString + ") is an applicant. Their applicant id is: " + applicant.ApplicantId + ".";
+                                        reply += "For more information, you will need to make an offline request based on their applicant id.";
                                     }
                                     else
                                     {
