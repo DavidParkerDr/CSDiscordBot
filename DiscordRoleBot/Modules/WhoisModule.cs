@@ -98,47 +98,49 @@ namespace DiscordRoleBot.Modules
                             int uniId = 0;
                             if (int.TryParse(lookupString, out uniId))
                             {
-                                Applicant applicant = null;
-                                if (ApplicantsFile.Instance.TryGetApplicant(uniId, out applicant))
+                                
+                                Student student = null;
+                                if (StudentsFile.Instance.TryGetStudent(uniId, out student))
                                 {
-                                    // this discord user matches one of the applicants
-                                    reply = "That user (" + lookupString + ") is an applicant.";
-                                    if (applicant.DiscordConnected)
+                                    // this discord user matches one of the students
+                                    reply = "That user (" + lookupString + ") is a student.";
+                                    SocketGuildUser discordUser = Bot.GetSocketGuildUser(student.DiscordSnowflake);
+                                    if (discordUser != null)
                                     {
-                                        SocketGuildUser discordUser = Bot.GetSocketGuildUser(applicant.DiscordSnowflake);
-                                        if(discordUser != null)
-                                        {
-                                            string usernamePlusDiscriminator = discordUser.Username + "#" + discordUser.Discriminator;
-                                            string nickname = discordUser.Nickname;
-                                            reply += " Their current Discord handle on this server is: " + usernamePlusDiscriminator + "(" + nickname + ")" + ".";
-                                        }
+                                        string usernamePlusDiscriminator = discordUser.Username + "#" + discordUser.Discriminator;
+                                        string nickname = discordUser.Nickname;
+                                        reply += " Their current Discord handle on this server is: " + usernamePlusDiscriminator + "(" + nickname + ")" + ".";
+                                        _ = FileLogger.Instance.Log(new LogMessage(LogSeverity.Info, "CanvasLookup", "[Whois]: " + requesterLookup + " asked who: " + lookupString + " is and was told: " + reply));
                                     }
-                                    else
-                                    {
-                                        reply += " They are not currently on this Discord server.";
-                                    }
+
                                 }
+                                
                                 else
                                 {
-                                    // they are not an applicant so check for them being a student.
-                                    Student student = null;
-                                    if (StudentsFile.Instance.TryGetStudent(uniId, out student))
+                                    // they are not a student so check for them being an applicant.
+                                    Applicant applicant = null;
+                                    if (ApplicantsFile.Instance.TryGetApplicant(uniId, out applicant))
                                     {
-                                        // this discord user matches one of the students
-                                        reply = "That user (" + lookupString + ") is a student.";
-                                        SocketGuildUser discordUser = Bot.GetSocketGuildUser(student.DiscordSnowflake);
-                                        if (discordUser != null)
+                                        // this discord user matches one of the applicants
+                                        reply = "That user (" + lookupString + ") is an applicant.";
+                                        if (applicant.DiscordConnected)
                                         {
-                                            string usernamePlusDiscriminator = discordUser.Username + "#" + discordUser.Discriminator;
-                                            string nickname = discordUser.Nickname;
-                                            reply += " Their current Discord handle on this server is: " + usernamePlusDiscriminator + "(" + nickname + ")" + ".";
-                                            _ = FileLogger.Instance.Log(new LogMessage(LogSeverity.Info, "CanvasLookup", "[Whois]: " + requesterLookup + " asked who: " + lookupString + " is and was told: " + reply));
+                                            SocketGuildUser discordUser = Bot.GetSocketGuildUser(applicant.DiscordSnowflake);
+                                            if (discordUser != null)
+                                            {
+                                                string usernamePlusDiscriminator = discordUser.Username + "#" + discordUser.Discriminator;
+                                                string nickname = discordUser.Nickname;
+                                                reply += " Their current Discord handle on this server is: " + usernamePlusDiscriminator + "(" + nickname + ")" + ".";
+                                            }
                                         }
-                                        
+                                        else
+                                        {
+                                            reply += " They are not currently on this Discord server.";
+                                        }
                                     }
                                     else
                                     {
-                                        //they are not a student either.
+                                        //they are not an applicant either.
                                         reply = "That user (" + lookupString + ") doesn't exist on the server. Please check that you have typed it correctly.";
                                     }
                                 }
