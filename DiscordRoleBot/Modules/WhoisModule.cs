@@ -113,6 +113,10 @@ namespace DiscordRoleBot.Modules
                                             reply += " Their current Discord handle on this server is: " + usernamePlusDiscriminator + "(" + nickname + ")" + ".";
                                         }
                                     }
+                                    else
+                                    {
+                                        reply += " They are not currently on this Discord server.";
+                                    }
                                 }
                                 else
                                 {
