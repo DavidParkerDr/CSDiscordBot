@@ -9,6 +9,7 @@ namespace DiscordRoleBot
     class CanvasQuizRecord
     {
         private string user;
+        public string Name { get; set; }
         public int StudentId { get; set; }
         public string User
         {
@@ -46,6 +47,7 @@ namespace DiscordRoleBot
     {
         public CanvasQuizRecordMap()
         {
+            Map(m => m.Name).Name("name");
             Map(m => m.StudentId).Name("sis_id");
             Map(m => m.User).Index(8);
             Map(m => m.RecordTimeStampString).Name("submitted");

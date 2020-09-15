@@ -223,7 +223,7 @@ namespace DiscordRoleBot
                                     if (TryGetStudent(canvasQuizRecord.StudentId, out student))
                                     {
                                         //quiz record matches an existing student;
-                                        _ = FileLogger.Instance.Log(new LogMessage(LogSeverity.Error, "CanvasQuiz", "Quiz record: " + canvasQuizRecord.User + " matches existing student: " + canvasQuizRecord.StudentId + "."));
+                                        _ = FileLogger.Instance.Log(new LogMessage(LogSeverity.Error, "CanvasQuiz", "Quiz record: " + canvasQuizRecord.User + " matches existing student: " + canvasQuizRecord.Name + " (" + canvasQuizRecord.StudentId + ")."));
                                     }
                                     else
                                     {
@@ -235,14 +235,14 @@ namespace DiscordRoleBot
                                             AddStudent(student);
                                             SocketRole studentRole = Bot.GetRole("student");
                                             _ = Bot.AddRoleToUser(discordUser, studentRole);
-                                            FileLogger.Instance.Log(new LogMessage(LogSeverity.Info, "CanvasQuiz", "Added a new user with id: " + canvasQuizRecord.User + " (" + canvasQuizRecord.StudentId + ")"));
-                                            notification += "Added a new user with id: " + canvasQuizRecord.User + " (" + canvasQuizRecord.StudentId + ")\n";
+                                            FileLogger.Instance.Log(new LogMessage(LogSeverity.Info, "CanvasQuiz", "Added a new user " + canvasQuizRecord.Name + " (" + canvasQuizRecord.StudentId + ")" + " with Discord id: " + canvasQuizRecord.User));
+                                            notification += "Added a new user " + canvasQuizRecord.Name + " (" + canvasQuizRecord.StudentId + ")" + " with Discord id: " + canvasQuizRecord.User + "\n";
 
                                         }
                                         else
                                         {
                                             // this quiz entry did not specify a valid user on the discord server.
-                                            _ = FileLogger.Instance.Log(new LogMessage(LogSeverity.Error, "CanvasQuiz", "Quiz entry: " + canvasQuizRecord.User + " by student: " + canvasQuizRecord.StudentId + " does not match a valid Discord user on the server."));
+                                            _ = FileLogger.Instance.Log(new LogMessage(LogSeverity.Error, "CanvasQuiz", "Quiz entry: " + canvasQuizRecord.User + " by student: " + canvasQuizRecord.Name + " (" + canvasQuizRecord.StudentId + ") does not match a valid Discord user on the server."));
                                         }
                                     }
                                 }
