@@ -29,20 +29,22 @@ namespace DiscordRoleBot.Modules
                 if (parameters != null)
                 {
                     // we need to be careful here as we can't just split by space as some of the username descriminator combos have spaces
-                    int spacePos = parameters.IndexOf(' ');
-                    if (spacePos != -1)
+                    int openQuotePos = parameters.IndexOf('"');
+                    if (openQuotePos != -1)
                     {
-                        string roleString = parameters.Substring(0, spacePos);
+                        int closeQuotePos = parameters.IndexOf('"', openQuotePos + 1);
+                        int length = closeQuotePos - (openQuotePos + 1);
+                        string roleString = parameters.Substring(openQuotePos + 1, length);
                         SocketRole role = Bot.GetRole(roleString);
                         if (role != null)
                         {
-                            parameters = parameters.Substring(spacePos);
+                            parameters = parameters.Substring(closeQuotePos + 1);
                             string[] parametersTokens = parameters.Split(',');
                             int totalNumber = parametersTokens.Length;
                             int count = 0;
                             foreach (string parameterToken in parametersTokens)
                             {
-                                string partialReply = "Something went wrong and I don't know what.";
+                                string partialReply = "Something went wrong and I don't know what.\n";
                                 string roleAddee = parameterToken.Trim();
                                 if (roleAddee.Contains('#'))
                                 {
@@ -57,17 +59,17 @@ namespace DiscordRoleBot.Modules
                                         if (StudentsFile.Instance.TryGetDiscordStudent(discordSnowflake, out student))
                                         {
                                             _ = Bot.RemoveRole(discordUser, role);
-                                            partialReply = "I have removed the role: " + roleString + " from user: " + discordUser.Username + "#" + discordUser.Discriminator + " (" + student.StudentId + ")";
+                                            partialReply = "I have removed the role: " + roleString + " from user: " + discordUser.Username + "#" + discordUser.Discriminator + " (" + student.StudentId + ")\n";
 
                                         }
                                         else
                                         {
-                                            partialReply = "The Discord username and discriminator (" + discordUser.Username + "#" + discordUser.Discriminator + ") does not match a student in our records. Please check that you have typed it correctly. They may not have verified their Discord user using the Canvas quiz.";
+                                            partialReply = "The Discord username and discriminator (" + discordUser.Username + "#" + discordUser.Discriminator + ") does not match a student in our records. Please check that you have typed it correctly. They may not have verified their Discord user using the Canvas quiz.\n";
                                         }
                                     }
                                     else
                                     {
-                                        partialReply = "The Discord username and discriminator (" + roleAddee + ") does not match a Discord user on the server. Please check that you have typed it correctly";
+                                        partialReply = "The Discord username and discriminator (" + roleAddee + ") does not match a Discord user on the server. Please check that you have typed it correctly.\n";
                                     }
                                 }
                                 else if (roleAddee.Length == 9)
@@ -81,11 +83,11 @@ namespace DiscordRoleBot.Modules
                                             // this discord user matches one of the students
                                             SocketGuildUser discordUser = Bot.GetSocketGuildUser(student.DiscordSnowflake);
                                             _ = Bot.RemoveRole(discordUser, role);
-                                            partialReply = "I have removed the role: " + roleString + " from user: " + discordUser.Username + "#" + discordUser.Discriminator + " (" + student.StudentId + ")";
+                                            partialReply = "I have removed the role: " + roleString + " from user: " + discordUser.Username + "#" + discordUser.Discriminator + " (" + student.StudentId + ")\n";
                                         }
                                         else
                                         {
-                                            partialReply = "The student id provided (" + roleAddee + ") does not match our records. Please check that you have typed it correctly. They may not have joined the Discord server.";
+                                            partialReply = "The student id provided (" + roleAddee + ") does not match our records. Please check that you have typed it correctly. They may not have joined the Discord server.\n";
                                         }
                                     }
                                 }
@@ -102,7 +104,7 @@ namespace DiscordRoleBot.Modules
                         }
                         else
                         {
-                            reply = "That role does not exist on the server. Please check that you have typed it correctly";
+                            reply = "That role does not exist on the server. Please check that you have typed it correctly.";
                         }
                     }
                     else
@@ -123,6 +125,8 @@ namespace DiscordRoleBot.Modules
             }
 
             Bot.SendMessage(requester, reply);
+            string requesterLookup = requester.Username + "#" + requester.Discriminator + " (" + requester.Nickname + ")";
+            _ = FileLogger.Instance.Log(new LogMessage(LogSeverity.Info, "RemoveRoleModule", "[RemoveRole]: " + requesterLookup + " was told: " + reply));
         }
 
 #pragma warning disable CS1998 // Async method lacks 'await' operators and will run synchronously
