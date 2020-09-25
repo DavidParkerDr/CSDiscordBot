@@ -10,26 +10,50 @@ using System.Threading.Tasks;
 
 namespace DiscordRoleBot.Helpers
 {
-    [AttributeUsage(AttributeTargets.Method, AllowMultiple = true)]
+    /// <summary>
+    /// Marks a command as requiring a role or set of roles in order to run.
+    /// </summary>
+    [AttributeUsage(AttributeTargets.Method, AllowMultiple = false)]
     public class AuthoriseAttribute : PreconditionAttribute
     {
-        private readonly SocketRole _role;
+        private readonly List<SocketRole> _roles = new List<SocketRole>();
 
         public AuthoriseAttribute(ulong roleId)
         {
-            _role = Bot.GetRole(roleId);
+            _roles.Add(Bot.GetRole(roleId));
+            CheckRole();
         }
 
         public AuthoriseAttribute(string roleName)
         {
-            _role = Bot.GetRole(roleName);
+            _roles.Add(Bot.GetRole(roleName));
+            CheckRole();
+        }
+
+        public AuthoriseAttribute(ulong[] roleIds)
+        {
+            foreach (ulong roleId in roleIds)
+            {
+                _roles.Add(Bot.GetRole(roleId));
+            }
+            CheckRole();
+        }
+
+        public AuthoriseAttribute(string[] roleNames)
+        {
+            foreach(string roleName in roleNames)
+            {
+                _roles.Add(Bot.GetRole(roleName));
+            }
+            CheckRole();
         }
 
         private void CheckRole()
         {
-            if(_role == null)
+            if(_roles.Any(r => r == null))
             {
-                _ = FileLogger.Instance.Log(new LogMessage(LogSeverity.Info, "Bot", "Precondition for a command is a role that doesn't exist!"));
+                _ = FileLogger.Instance.Log(new LogMessage(LogSeverity.Info, "Bot", "Precondition for a command has a role that doesn't exist!"));
+                _roles.RemoveAll(r => r == null);
             }
         }
 
@@ -44,14 +68,14 @@ namespace DiscordRoleBot.Helpers
             string userLookup = context.User.ToString();
             SocketGuildUser requester = Bot.GetSocketGuildUser(userLookup);
 
-            if (_role == null)
+            if (_roles.Count == 0 || !_roles.Any(r => Bot.GetGuild().Roles.Contains(r)))
             {
-                string reply = $"The server does not have the role required to access this command or you are not part of the server";
+                string reply = $"The server does not have the role(s) required to access this command or you are not part of the server";
                 Log(requester, reply);
                 PreconditionResult.FromError(reply);
             }
             
-            if (requester.Roles.Contains(_role))
+            if (requester.Roles.Any(r => _roles.Contains(r)))
             {
                 return PreconditionResult.FromSuccess();
             }
