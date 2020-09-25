@@ -13,17 +13,12 @@ namespace DiscordRoleBot.Modules
     {
         [Command("removerole")]
         [Summary("removes a specified role (if it exists) from a specified user (if they exist)")]
-        public async Task RemoveRoleAsync([Remainder] [Summary("The role to remove and the comma separated list of users to remove it from")] string parameters = null)
+        [Helpers.Authorise("staff")]
+        public async Task RemoveRoleAsync([Remainder][Summary("The role to remove and the comma separated list of users to remove it from")] string parameters = null)
         {
             string userLookup = Context.User.ToString();
             SocketGuildUser requester = Bot.GetSocketGuildUser(userLookup);
-            SocketRole staffRole = Bot.GetRole("staff");
             string reply = "Something went wrong, not sure what.";
-            if (!requester.Roles.Contains(staffRole))
-            {
-                // for the time being you need to be staff to ask the bot to add or remove roles
-                reply = "You do not have the necessary privileges to perform that action.";
-            }
             if (Context.IsPrivate)
             {
                 if (parameters != null)
@@ -127,13 +122,6 @@ namespace DiscordRoleBot.Modules
             Bot.SendMessage(requester, reply);
             string requesterLookup = requester.Username + "#" + requester.Discriminator + " (" + requester.Nickname + ")";
             _ = FileLogger.Instance.Log(new LogMessage(LogSeverity.Info, "RemoveRoleModule", "[RemoveRole]: " + requesterLookup + " was told: " + reply));
-        }
-
-#pragma warning disable CS1998 // Async method lacks 'await' operators and will run synchronously
-        private async Task<IDMChannel> PackageBackchannel(IDMChannel channel)
-#pragma warning restore CS1998 // Async method lacks 'await' operators and will run synchronously
-        {
-            return channel;
         }
     }
 }

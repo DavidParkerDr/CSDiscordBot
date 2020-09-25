@@ -9,11 +9,11 @@ using System.Threading.Tasks;
 
 namespace DiscordRoleBot.Modules
 {
-    public class ApplicantModule : ModuleBase<SocketCommandContext> 
+    public class ApplicantModule : ModuleBase<SocketCommandContext>
     {
         [Command("applicant")]
         [Summary("validates new applicant against their applicant reference id and assigns applicant role")]
-        public async Task AssignApplicantAsync([Remainder] [Summary("The applicant id to verify")] string parameters = null)
+        public async Task AssignApplicantAsync([Remainder][Summary("The applicant id to verify")] string parameters = null)
         {
             string userLookup = Context.User.Username + "#" + Context.User.Discriminator;
             SocketGuildUser user = Bot.GetSocketGuildUser(userLookup);
@@ -58,7 +58,7 @@ namespace DiscordRoleBot.Modules
                                     reply = "Thanks. Welcome to the Computer Science and Technology Discord Server. As an applicant you now have access to the Applicant Zone; check out the channels in there and feel free to talk amongst yourselves or ask us any questions that you like.";
                                     //add applicant to discordLookup list
                                     ApplicantsFile.Instance.UpdateDiscordLookup(applicant);
-                                    
+
                                 }
                                 else
                                 {
@@ -89,12 +89,5 @@ namespace DiscordRoleBot.Modules
             string notification = "[Applicant]: " + userLookup + " sent applicant id " + applicantReferenceIdString + " and was told: " + reply;
             Bot.Notify(notification);
         }
-        
-#pragma warning disable CS1998 // Async method lacks 'await' operators and will run synchronously
-        private async Task<IDMChannel> PackageBackchannel(IDMChannel channel)
-#pragma warning restore CS1998 // Async method lacks 'await' operators and will run synchronously
-        {
-            return channel;
-        }
-    }
+    }        
 }

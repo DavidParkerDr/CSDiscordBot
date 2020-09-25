@@ -1,4 +1,5 @@
-﻿using Discord.WebSocket;
+﻿using Castle.DynamicProxy.Generators.Emitters.SimpleAST;
+using Discord.WebSocket;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -27,7 +28,7 @@ namespace DiscordRoleBot
         /// Retrieves a guild role from a guild and the role's name
         /// </summary>
         /// <param name="guild">the guild (server) that the role should be from</param>
-        /// <param name="roleId">the ulong role id</param>
+        /// <param name="roleName">the string role.Name OR a string containing a role ID</param>
         /// <returns></returns>
         public static SocketRole GetRole(string roleName, SocketGuild guild = null)
         {
@@ -42,6 +43,10 @@ namespace DiscordRoleBot
                 {
                     return guildRole;
                 }
+            }
+            if (ulong.TryParse(roleName, out ulong roleID))
+            { 
+                return GetRole(roleID); 
             }
             return null;
         }

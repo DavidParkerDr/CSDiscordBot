@@ -13,22 +13,17 @@ namespace DiscordRoleBot.Modules
     {
         [Command("addrole")]
         [Summary("adds a specified role (if it exists) to a specified user (if they exist)")]
+        [Helpers.Authorise("staff")]
         public async Task AddRoleAsync([Remainder] [Summary("The role to add to a comma separated list of users")] string parameters = null)
         {
             string userLookup = Context.User.ToString();
             SocketGuildUser requester = Bot.GetSocketGuildUser(userLookup);
-            SocketRole staffRole = Bot.GetRole("staff");
             string reply = "Something went wrong, not sure what.";
-            if(!requester.Roles.Contains(staffRole))
-            {
-                // for the time being you need to be staff to ask the bot to add or remove roles
-                reply = "You do not have the necessary privileges to perform that action.";
-            }
-            else if (Context.IsPrivate)
+            if (Context.IsPrivate)
             {
                 if (parameters != null)
                 {
-                    // we need to be careful here as we can't just split by space as some of the username descriminator combos have spaces
+                    // we need to be careful here as we can't just split by space as some of the roles and username descriminator combos have spaces
                     int openQuotePos = parameters.IndexOf('"');
                     if (openQuotePos != -1)
                     {
@@ -91,14 +86,8 @@ namespace DiscordRoleBot.Modules
                                         }
                                     }
                                 }
-                                if (count == 0)
-                                {
-                                    reply = partialReply;
-                                }
-                                else
-                                {
-                                    reply += partialReply;
-                                }
+                                reply = count is 0 ?
+                                    partialReply : reply += partialReply;
                                 count++;
                             }
                         }
@@ -129,11 +118,5 @@ namespace DiscordRoleBot.Modules
             _ = FileLogger.Instance.Log(new LogMessage(LogSeverity.Info, "AddRoleModule", "[AddRole]: " + requesterLookup + " was told: " + reply));
         }
 
-#pragma warning disable CS1998 // Async method lacks 'await' operators and will run synchronously
-        private async Task<IDMChannel> PackageBackchannel(IDMChannel channel)
-#pragma warning restore CS1998 // Async method lacks 'await' operators and will run synchronously
-        {
-            return channel;
-        }
     }
 }
