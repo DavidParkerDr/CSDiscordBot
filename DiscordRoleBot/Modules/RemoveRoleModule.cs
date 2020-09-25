@@ -86,14 +86,8 @@ namespace DiscordRoleBot.Modules
                                         }
                                     }
                                 }
-                                if (count == 0)
-                                {
-                                    reply = partialReply;
-                                }
-                                else
-                                {
-                                    reply += partialReply;
-                                }
+                                reply = count is 0 ?
+                                    partialReply : reply += partialReply;
                                 count++;
                             }
                         }
