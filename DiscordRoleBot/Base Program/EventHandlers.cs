@@ -12,10 +12,17 @@ namespace DiscordRoleBot
         /// this handler will send a DM to the Notify id specified in the appconfig.json
         /// </summary>
         /// <returns></returns>
-        private Task ClientReadyEventHandler()
+        private async Task<Task> ClientReadyEventHandler()
         {
-            Notify("I'm back baby!");
+            if (!commandsRegistered)
+            {
+                commandsRegistered = true;
+                DiscordRoleBot.Services.Initialize i = new DiscordRoleBot.Services.Initialize(null, _client);
+                DiscordRoleBot.Services.CommandHandler commandHandler = new DiscordRoleBot.Services.CommandHandler(_client, i.BuildServiceProvider());
+                await commandHandler.InstallCommandsAsync();
+            }
 
+            Notify("I'm back baby!");
 
             string users = "DavidParkerDr#6742,JDixonHull#1878";
 
@@ -65,13 +72,14 @@ namespace DiscordRoleBot
         /// <returns></returns>
         private async Task<Task> ClientConnectedEventHandler()
         {
-            if (!commandsRegistered)
-            {
-                commandsRegistered = true;
-                DiscordRoleBot.Services.Initialize i = new DiscordRoleBot.Services.Initialize(null, _client);
-                DiscordRoleBot.Services.CommandHandler commandHandler = new DiscordRoleBot.Services.CommandHandler(_client, i.BuildServiceProvider());
-                await commandHandler.InstallCommandsAsync();
-            }
+            // this code has been moved to ClientReady as there appears to be an issue assigning roles
+            //if (!commandsRegistered)
+            //{
+            //    commandsRegistered = true;
+            //    DiscordRoleBot.Services.Initialize i = new DiscordRoleBot.Services.Initialize(null, _client);
+            //    DiscordRoleBot.Services.CommandHandler commandHandler = new DiscordRoleBot.Services.CommandHandler(_client, i.BuildServiceProvider());
+            //    await commandHandler.InstallCommandsAsync();
+            //}
             return Task.CompletedTask;
         }
     }

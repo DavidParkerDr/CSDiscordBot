@@ -77,8 +77,15 @@ namespace DiscordRoleBot.Modules
                                         {
                                             // this discord user matches one of the students
                                             SocketGuildUser discordUser = Bot.GetSocketGuildUser(student.DiscordSnowflake);
-                                            _ = Bot.AddRoleToUser(discordUser, role);
-                                            partialReply = "I have added the role: " + roleString + " to user: " + discordUser.Username + "#" + discordUser.Discriminator + " (" + student.StudentId + ")\n";
+                                            if (discordUser != null)
+                                            {
+                                                _ = Bot.AddRoleToUser(discordUser, role);
+                                                partialReply = "I have added the role: " + roleString + " to user: " + discordUser.Username + "#" + discordUser.Discriminator + " (" + student.StudentId + ")\n";
+                                            }
+                                            else
+                                            {
+                                                partialReply = "The student id provided (" + roleAddee + ") is in the list, but may have left the server.\n";
+                                            }
                                         }
                                         else
                                         {

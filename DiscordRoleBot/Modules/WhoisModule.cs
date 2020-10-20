@@ -42,7 +42,7 @@ namespace DiscordRoleBot.Modules
                             if (StudentsFile.Instance.TryGetDiscordStudent(discordSnowflake, out student))
                             {
                                 // this discord user matches one of the applicants
-                                reply = "That user (" + lookupString + ") is an student. Their student id is: " + student.StudentId + ".";
+                                reply = "The user: " + user.Username + "#" + user.Discriminator + " (" + user.Nickname + ") with snowflake id: " + user.Id + " is an student. Their student id is: " + student.StudentId + ".";
                                 StudentLookupResult studentLookupResult = await CanvasClient.Instance.GetCanvasUserFrom9DigitId(student.StudentId);
                                 if (studentLookupResult != null)
                                 {
@@ -70,7 +70,7 @@ namespace DiscordRoleBot.Modules
                                 if (ApplicantsFile.Instance.TryGetDiscordApplicant(discordSnowflake, out applicant))
                                 {
                                     // this discord user matches one of the applicants
-                                    reply = "That user (" + lookupString + ") is an applicant. Their applicant id is: " + applicant.ApplicantId + ".";
+                                    reply = "The user: " + user.Username + "#" + user.Discriminator + " (" + user.Nickname + ") with snowflake id: " + user.Id + " is an applicant. Their applicant id is: " + applicant.ApplicantId + ".";
                                     reply += "For more information, you will need to make an offline request based on their applicant id.";
                                 }
                                 else
@@ -105,9 +105,15 @@ namespace DiscordRoleBot.Modules
                                 {
                                     string usernamePlusDiscriminator = discordUser.Username + "#" + discordUser.Discriminator;
                                     string nickname = discordUser.Nickname;
-                                    reply += " Their current Discord handle on this server is: " + usernamePlusDiscriminator + "(" + nickname + ")" + ".";
-                                    _ = FileLogger.Instance.Log(new LogMessage(LogSeverity.Info, "CanvasLookup", "[Whois]: " + requesterLookup + " asked who: " + lookupString + " is and was told: " + reply));
+                                    reply += " Their current Discord handle on this server is: " + usernamePlusDiscriminator + "(" + nickname + ") with snowflake id: " + discordUser.Id + ".";
+                                    
                                 }
+                                else
+                                {
+                                    reply += " They can't be found on the server, so may have left.";
+                                    
+                                }
+                                _ = FileLogger.Instance.Log(new LogMessage(LogSeverity.Info, "CanvasLookup", "[Whois]: " + requesterLookup + " asked who: " + lookupString + " is and was told: " + reply));
 
                             }
 
@@ -126,7 +132,7 @@ namespace DiscordRoleBot.Modules
                                         {
                                             string usernamePlusDiscriminator = discordUser.Username + "#" + discordUser.Discriminator;
                                             string nickname = discordUser.Nickname;
-                                            reply += " Their current Discord handle on this server is: " + usernamePlusDiscriminator + "(" + nickname + ")" + ".";
+                                            reply += " Their current Discord handle on this server is: " + usernamePlusDiscriminator + "(" + nickname + ") with snowflake id: " + discordUser.Id + ".";
                                         }
                                     }
                                     else
