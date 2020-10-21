@@ -68,20 +68,31 @@ namespace DiscordRoleBot.Helpers
             string userLookup = context.User.ToString();
             SocketGuildUser requester = Bot.GetSocketGuildUser(userLookup);
 
-            if (_roles.Count == 0 || !_roles.Any(r => Bot.GetGuild().Roles.Contains(r)))
+            if (requester != null)
             {
-                string reply = $"The server does not have the role(s) required to access this command or you are not part of the server";
-                Log(requester, reply);
-                PreconditionResult.FromError(reply);
-            }
-            
-            if (requester.Roles.Any(r => _roles.Contains(r)))
-            {
-                return PreconditionResult.FromSuccess();
+                if (_roles.Count == 0 || !Bot.GetGuild().Roles.Any(r => _roles.Any(_r => _r.Id == r.Id)))
+                {
+                    string reply = $"The server does not have the role(s) required to access this command or you are not part of the server";
+                    Log(requester, reply);
+                    return PreconditionResult.FromError(reply);
+                }
+                else
+                {
+                    if (requester.Roles.Any(r => _roles.Any(_r => _r.Id == r.Id)))
+                    {
+                        return PreconditionResult.FromSuccess();
+                    }
+                    else
+                    {
+                        string reply = $"You do not have the necessary privileges to perform that action.";
+                        Log(requester, reply);
+                        return PreconditionResult.FromError(reply);
+                    }
+                }
             }
             else
             {
-                string reply = $"You do not have the necessary privileges to perform that action.";
+                string reply = $"User was not found on the current channel";
                 Log(requester, reply);
                 return PreconditionResult.FromError(reply);
             }
