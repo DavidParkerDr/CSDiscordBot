@@ -54,7 +54,7 @@ namespace DiscordRoleBot.Modules
                                         if (StudentsFile.Instance.TryGetDiscordStudent(discordSnowflake, out student))
                                         {
                                             _ = Bot.AddRoleToUser(discordUser, role);
-                                            partialReply = "I have added the role: " + roleString + " to user: " + discordUser.Username + "#" + discordUser.Discriminator + " (" + student.StudentId + ")\n";
+                                            partialReply = "I have added the role: " + roleString + " to user: " + discordUser.Username + "#" + discordUser.Discriminator + " (" + student.StudentId + ") with snowflake id: " + discordUser.Id + "\n";
                                             
                                         }
                                         else
@@ -80,7 +80,7 @@ namespace DiscordRoleBot.Modules
                                             if (discordUser != null)
                                             {
                                                 _ = Bot.AddRoleToUser(discordUser, role);
-                                                partialReply = "I have added the role: " + roleString + " to user: " + discordUser.Username + "#" + discordUser.Discriminator + " (" + student.StudentId + ")\n";
+                                                partialReply = "I have added the role: " + roleString + " to user: " + discordUser.Username + "#" + discordUser.Discriminator + " (" + student.StudentId + ") with snowflake id: " + discordUser.Id + "\n";
                                             }
                                             else
                                             {
