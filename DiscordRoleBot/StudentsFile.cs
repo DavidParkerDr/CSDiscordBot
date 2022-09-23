@@ -264,8 +264,14 @@ namespace DiscordRoleBot
                         _ = FileLogger.Instance.Log(new LogMessage(LogSeverity.Info, "CanvasQuiz", "No quiz responses."));
                     }
                     mut.Release();
-                    if(notification.Length > 0)
+                    while(notification.Length > 0)
                     {
+                        if (notification.Length > 1000)
+                        {
+                            string notificationPart = notification.Substring(0, 1000);
+                            notification = notification.Substring(1000);
+                            Bot.Notify(notificationPart);
+                        }
                         Bot.Notify(notification);
                     }
                 }
