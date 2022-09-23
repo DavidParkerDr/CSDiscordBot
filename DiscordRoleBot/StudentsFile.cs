@@ -268,11 +268,31 @@ namespace DiscordRoleBot
                     {
                         if (notification.Length > 1000)
                         {
-                            string notificationPart = notification.Substring(0, 1000);
-                            notification = notification.Substring(1000);
-                            Bot.Notify(notificationPart);
+                            _ = FileLogger.Instance.Log(new LogMessage(LogSeverity.Info, "Notification", "Notification is too long: " + notification.Length + " characters long."));
+                            int lineFeedIndex = 1000;
+                            char character = notification[lineFeedIndex];
+                            while(character != '\n' && lineFeedIndex > 0)
+                            {
+                                lineFeedIndex--;
+                                character = notification[lineFeedIndex];    
+                            }
+                            if(lineFeedIndex > 0)
+                            {
+                                string notificationPart = notification.Substring(0, lineFeedIndex);
+                                notification = notification.Substring(lineFeedIndex);
+                                Bot.Notify(notificationPart);
+                            }
+                            else
+                            {
+                                _ = FileLogger.Instance.Log(new LogMessage(LogSeverity.Info, "Error", "Couldn't find line feed"));
+                            }
+                            
                         }
-                        Bot.Notify(notification);
+                        else
+                        {
+                            Bot.Notify(notification);
+                            break;
+                        }
                     }
                 }
             }
