@@ -21,6 +21,9 @@ namespace DiscordRoleBot
                 DiscordRoleBot.Services.CommandHandler commandHandler = new DiscordRoleBot.Services.CommandHandler(_client, i.BuildServiceProvider());
                 await commandHandler.InstallCommandsAsync();
             }
+            
+            SocketUser user = _client.GetUser(550616765470736396L);
+            user = _client.GetUser("davidparkerdr");
 
             Notify("I'm back baby!");
 
@@ -54,7 +57,10 @@ namespace DiscordRoleBot
             }
             else
             {
-                string message = @"Welcome to the Computer Science and Technology Discord. If you are one of our students, please ensure that you have submitted your Username and ID at https://canvas.hull.ac.uk/courses/17835/quizzes/20659 which will give you permissions to use the server. Please note that your username is case sensitive. The process may take up to 2 hours to complete. If you are not yet one of our students, but have applied, then if you reply to this message with the following command, your user will be validated and you will gain access to the Applicant Zone on the server. The command is !applicant 123456789, where you replace that 9 digit number with the 9 digit application id that you were provided by the University. If you have any problems, please get in touch with John Dixon (JDixonHull#1878) or David Parker (DavidParkerDr#6742).";
+                // If you are not yet one of our students, but have applied, then if you reply to this message with the following command, your user will be validated and you will gain access to the Applicant Zone on the server. The command is !applicant 123456789, where you replace that 9 digit number with the 9 digit application id that you were provided by the University.
+                SocketRole unassignedRole = GetRole("unassigned");
+                _ = AddRoleToUser(user, unassignedRole);
+                string message = @"Welcome to the Computer Science and Technology Discord. If you are one of our students, please ensure that you have submitted your Username and ID at https://canvas.hull.ac.uk/courses/17835/quizzes/51027 which will give you permissions to use the server. Please note that your username is case sensitive. The process may take up to 2 hours to complete. If you have any problems, please get in touch with John Dixon (JDixonHull#1878) or David Parker (DavidParkerDr#6742).";
                 SendMessage(user, message);
             }
 

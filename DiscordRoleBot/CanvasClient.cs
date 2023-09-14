@@ -203,7 +203,9 @@ namespace DiscordRoleBot
                 {
                     //First create a new report
                     _ = FileLogger.Instance.Log(new LogMessage(LogSeverity.Info, "CanvasQuiz", "Starting quiz report build."));
-                    string path = @"https://canvas.hull.ac.uk/api/v1/courses/17835/quizzes/20659/reports?as_user_id=sis_user_id:" + canvasUser;
+                    // https://canvas.hull.ac.uk/api/v1/courses/17835/quizzes/20659/reports/
+                    var quizUrl = Bot._config.GetValue(Type.GetType("System.String"), "QuizUrl").ToString();
+                    string path = quizUrl + "?as_user_id=sis_user_id:" + canvasUser;
                     int timeout = 1000;
                     var task = PostStringAsync(path, @"{""quiz_report"":{""report_type"": ""student_analysis"",""includes_all_versions"": true}}");
                     if (await Task.WhenAny(task, Task.Delay(timeout)) == task)
@@ -231,7 +233,8 @@ namespace DiscordRoleBot
                             }
                         }
                         _ = FileLogger.Instance.Log(new LogMessage(LogSeverity.Info, "CanvasQuiz", "Retrieving quiz report."));
-                        path = "https://canvas.hull.ac.uk/api/v1/courses/17835/quizzes/20659/reports/" + (string)obj["context_id"] + "?as_user_id=sis_user_id:" + canvasUser;
+                        
+                        path = quizUrl + "/" + (string)obj["context_id"] + "?as_user_id=sis_user_id:" + canvasUser;
                         (response, nextPagePath) = await GetStringAsync(path);
                         obj = JObject.Parse(response);
                         path = (string)obj["file"]["url"] + "&as_user_id=sis_user_id:" + canvasUser;

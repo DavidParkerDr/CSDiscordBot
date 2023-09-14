@@ -234,7 +234,9 @@ namespace DiscordRoleBot
                                             student = new Student(canvasQuizRecord.StudentId, discordUser.Id);
                                             AddStudent(student);
                                             SocketRole studentRole = Bot.GetRole("student");
+                                            SocketRole unassignedRole = Bot.GetRole("unassigned");
                                             _ = Bot.AddRoleToUser(discordUser, studentRole);
+                                            _ = Bot.RemoveRole(discordUser, unassignedRole);
                                             FileLogger.Instance.Log(new LogMessage(LogSeverity.Info, "CanvasQuiz", "Added a new user " + canvasQuizRecord.Name + " (" + canvasQuizRecord.StudentId + ")" + " with Discord id: " + canvasQuizRecord.User));
                                             notification += "Added a new user " + canvasQuizRecord.Name + " (" + canvasQuizRecord.StudentId + ")" + " with Discord id: " + canvasQuizRecord.User + "\n";
 

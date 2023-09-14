@@ -22,6 +22,10 @@ namespace DiscordRoleBot
             {
                 user = GetSocketUser(tokens[0], tokens[1]);
             }
+            else
+            {
+                user = _client.GetUser(usernamePlusDescriminator);
+            }
             return user;
         }
         /// <summary>

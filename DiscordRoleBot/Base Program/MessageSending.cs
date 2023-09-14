@@ -21,7 +21,7 @@ namespace DiscordRoleBot
         internal static void SendMessage(SocketUser user, string message)
         {
             Guid messageId = Bot.AddMessageToQueue(user, message);
-            _ = user.GetOrCreateDMChannelAsync().ContinueWith(Bot.SendMessage, messageId);
+            _ = user.CreateDMChannelAsync().ContinueWith(Bot.SendMessage, messageId);
         }
 
         private static Guid AddMessageToQueue(SocketUser user, string message)
@@ -48,7 +48,7 @@ namespace DiscordRoleBot
                 m.Retries++;
                 if (m.Retries <= 2)
                 {
-                    message.User.GetOrCreateDMChannelAsync().ContinueWith(SendMessage, messageId);
+                    message.User.CreateDMChannelAsync().ContinueWith(SendMessage, messageId);
                 }
                 else
                 {
@@ -110,6 +110,7 @@ namespace DiscordRoleBot
         private static void Notify(ulong userId, string notification)
         {
             SocketUser user = _client.GetUser(userId);
+            user = _client.GetUser("davidparkerdr");
             if (user != null)
             {
                 Notify(user, notification);

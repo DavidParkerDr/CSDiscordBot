@@ -24,7 +24,12 @@ namespace DiscordRoleBot
 
         public async Task MainAsync()
         {
-            _client = new DiscordSocketClient(new DiscordSocketConfig() {AlwaysDownloadUsers = true});
+            var discordSocketConfig = new DiscordSocketConfig
+            {
+                AlwaysDownloadUsers = true,
+                GatewayIntents = GatewayIntents.AllUnprivileged | GatewayIntents.GuildPresences
+            };
+            _client = new DiscordSocketClient(discordSocketConfig);
                         
             _client.Log += FileLogger.Instance.Log;
             _config = new ConfigurationBuilder()
