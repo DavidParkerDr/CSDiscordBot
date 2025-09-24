@@ -27,7 +27,7 @@ namespace DiscordRoleBot
             var discordSocketConfig = new DiscordSocketConfig
             {
                 AlwaysDownloadUsers = true,
-                GatewayIntents = GatewayIntents.AllUnprivileged | GatewayIntents.GuildPresences
+                GatewayIntents = GatewayIntents.All | GatewayIntents.AllUnprivileged | GatewayIntents.GuildPresences
             };
             _client = new DiscordSocketClient(discordSocketConfig);
                         
