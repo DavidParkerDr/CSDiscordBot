@@ -34,6 +34,8 @@ namespace DiscordRoleBot
             client = new HttpClient();
             var canvasAuthentication = Bot._config.GetValue(Type.GetType("System.String"), "CanvasAuthentication").ToString();
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", canvasAuthentication);
+            client.DefaultRequestHeaders.UserAgent.ParseAdd("QuizReporterCSDiscordBot/1.0");
+            //  client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("User-Agent", "QuizReporterCSDiscordBot");
             client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("*/*"));
         }
         public async Task<StudentLookupResult> GetCanvasUserFrom9DigitId(int uni9DigitId)
